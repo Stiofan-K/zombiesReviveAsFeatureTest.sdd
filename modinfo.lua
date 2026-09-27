@@ -1,8 +1,8 @@
 return {
-	name = 'Zero-K Base Mutator',
-	description = 'Zero-K base mutator',
-	shortname = 'zkbasemutator',
-	version = 'v1',
+	name = 'Stiofan Zombie test',
+	description = 'Just testing zombie stuff',
+	shortname = 'zkstiofanzombietest',
+	version = 'v0.0.1',
 	mutator = '1',
 	game = '',
 	shortGame = '',
