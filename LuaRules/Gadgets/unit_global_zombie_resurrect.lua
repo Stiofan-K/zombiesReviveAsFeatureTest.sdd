@@ -67,7 +67,7 @@ local zombiesReviveCyclesCount = tonumber(modOptions.zombies_revive_cycles) or 1
 local zombiesWrecksRemain = tonumber(modOptions.zombies_wrecks_remain) or nil
 
 local zombiesReviveOptionsAsString = (modOptions.zombies_revive_options) or nil 
-local zombiesReviveOptionMultiRandomise = tonumber(modOptions.zombies_revive_options_multi_random) or 1
+local zombiesReviveOptionMultiRandomise = tonumber(modOptions.zombies_revive_options_multi_random) or nil
 local zombiesReviveOptionsOverflowSpawn = tonumber(modOptions.zombies_revive_options_overflow_spawn) or 1
 
 local zombiesBudgetMultiplier = tonumber(modOptions.zombies_budget_multiplier) or 1
@@ -110,7 +110,9 @@ local function SpawnReviveOption(x,y,z,facing,zombieUnitDefID)
 	local unitID = Spring.CreateUnit(zombieUnitDefID, x, y, z, facing, GaiaTeamID)
 	zombieUnits[unitID] = true
 	GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
-	GG.Zombies.SetZombieBehavior(unitID)
+	if ZOMBIES_PERMA_SLOW then
+		GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
+	end
 	gadgetHandler:NotifyUnitCreatedByMechanic(unitID, false, "zombies")
 	return unitID
 end
@@ -132,7 +134,7 @@ local function HandleZombieReviveOptions(featureID)
 	while currentBudget >= zombieCost do
 		SpawnReviveOption(x,y,z,facing,zombieUnitDefID)
 		currentBudget = currentBudget - zombieCost
-		if zombiesReviveOptionMultiRandomise == 1 then -- Randomises to a new unit if desired
+		if zombiesReviveOptionMultiRandomise then -- Randomises to a new unit if desired
 			zombieUnitDefID = zombieReviveOptions[math.random(1,zombieReviveOptionCount)]
 			zombieCost = UnitDefs[zombieUnitDefID].cost
 		end
@@ -224,7 +226,9 @@ local function RezFrameCallback(featureID)
 	if zombieReviveOptionCount == 0 then
 		local unitID = GG.Zombies.TurnFeatureIntoUnit(featureID,GaiaTeamID)
 		zombieUnits[unitID] = true
-		GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
+		if ZOMBIES_PERMA_SLOW then
+			GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
+		end
 		GG.Zombies.SetZombieBehavior(unitID)
 		if ZOMBIES_PARTIAL_RECLAIM then
 			GG.Zombies.SetHealthByReclaimPercent(featureID,unitID)
