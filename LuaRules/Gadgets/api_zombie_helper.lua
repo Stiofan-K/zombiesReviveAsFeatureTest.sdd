@@ -99,7 +99,7 @@ local function SetHealthToReclaimPercent(featureID, unitID)
 	if currentMetal and maxMetal and (maxMetal > 0) then
 		local health = Spring.GetUnitHealth(unitID)
 		if health then
-			Spring.SetUnitHealth(unitID, health*(currentMetal/maxMetal))
+			Spring.SetUnitHealth(unitID, math.ceil(health*(currentMetal/maxMetal)))
 		end
 	end
 end

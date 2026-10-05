@@ -122,17 +122,6 @@ if zombiesReviveOptionsAsString then -- TODO pilfered from lockunits_modoption, 
 	end
 end
 
-local function SpawnReviveOption(x,y,z,facing,zombieUnitDefID)
-	local unitID = Spring.CreateUnit(zombieUnitDefID, x, y, z, facing, zombieTeamID)
-	zombieUnits[unitID] = true
-	GG.Zombies.SetZombieBehavior(unitID)
-	if ZOMBIES_PERMA_SLOW then
-		GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
-	end
-	gadgetHandler:NotifyUnitCreatedByMechanic(unitID, false, "zombies")
-	return unitID
-end
-
 local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	local resDefName, facing = GG.Zombies.GetFeatureResurrectData(featureID)
 	local zombieUnitDefID = nil --nil means we use the features default revival thingy
@@ -194,18 +183,18 @@ local function ZombieBudgetProcessing(featureID,excessBudget)
 	local zombieBudget = UnitDefNames[resDefName].cost
 	
 	if ZOMBIES_PARTIAL_RECLAIM then -- partial reclaim reduces the available metal to spawn units
-		zombieBudget = math.floor(zombieBudget * (currentMetal/maxMetal))
+		zombieBudget =  math.ceil(zombieBudget * (currentMetal/maxMetal))
 	end
 	thisFeatureBudget = math.floor(excessBudget + zombieFlatBudget + zombieBudget * zombieBudgetMult)
 	
 	if zombieFlatBudgetScaler then
-		zombieFlatBudget = zombieFlatBudget + zombieFlatBudgetScaler * zombieBudget/100
+		zombieFlatBudget = math.floor(zombieFlatBudget + zombieFlatBudgetScaler * zombieBudget/100)
 	end
 	
 	if zombieBudgetMultScaler then
-		zombieBudgetMult = zombieBudgetMult +  zombieBudgetMultScaler * 0.000001 * zombieBudget^1.05
+		zombieBudgetMult = zombieBudgetMult + 0.000001 * math.floor(zombieBudgetMultScaler  * zombieBudget^1.05)
 	end
-	totalBaseZombieBudget = totalBaseZombieBudget + zombieBudget
+	totalBaseZombieBudget = math.floor(totalBaseZombieBudget + zombieBudget)
 	return thisFeatureBudget
 end
 
