@@ -74,7 +74,7 @@ end
 local function TurnFeatureIntoUnit(featureID,teamID,unitDefID)
 	local resDefName,facing = GetFeatureResurrectData(featureID)
 	local x, y, z = Spring.GetFeaturePosition(featureID)
-	local size
+	local size = 3
 	if unitDefID then
 		resDefName = unitDefID
 		size = UnitDefs[resDefName].xsize
@@ -103,7 +103,7 @@ local function SetHealthToReclaimPercent(featureID, unitID)
 		end
 	end
 end
- 
+
 -- Sets the zombie specific speed multiplier. Works on non zombie units too.
 local function SetZombieSpeedMult(unitID,speedMult)
 	if type(speedMult) ~= 'number' or speedMult < 0 then
@@ -113,9 +113,7 @@ local function SetZombieSpeedMult(unitID,speedMult)
 	GG.UpdateUnitAttributes(unitID)
 end
 
-
 -- Zombie commands
-
 local function RandomFactoryOrders(unitID, unitDefID) -- give factory something to do
 	if Spring.GetUnitIsDead(unitID) then
 		return
@@ -130,7 +128,6 @@ local function RandomFactoryOrders(unitID, unitDefID) -- give factory something 
 	end
 	Spring.GiveOrderArrayToUnit(unitID, orders)
 end
-
 
 local function GetUnitNearestAlly(unitID, range)
 	local best_ally
@@ -192,7 +189,7 @@ local function SetZombieBehavior(unitID)
 		RandomFactoryOrders(unitID, unitDefID) -- give factory something to do
 	end
 end
-	
+
 -- Adds a wreck into the zombie countdown table and returns it for further modification.
 -- Use the rezFrameCallback to repurpose the system for other effects or chain into TurnFeatureIntoUnit for a revived unit with ID Callback.
 -- If no callback is provided, revives the wreck as a unslowed zombie unit.
