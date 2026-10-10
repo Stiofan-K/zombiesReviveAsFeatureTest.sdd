@@ -194,8 +194,11 @@ end
 -- Use the rezFrameCallback to repurpose the system for other effects or chain into TurnFeatureIntoUnit for a revived unit with ID Callback.
 -- If no callback is provided, revives the wreck as a unslowed zombie unit.
 local function AddFeatureToZombieCountdown(featureID, buildpower, minRezTime, maxRezTime, rezFrameCallback)
+	if resurrectingFeatures[featureID] then
+		return resurrectingFeatures[featureID]
+	end
 	local resDefName, face = GetFeatureResurrectData(featureID)
-	if resDefName and face and not resurrectingFeatures[featureID] then
+	if resDefName and face then
 		local ud = resDefName and UnitDefNames[resDefName]
 		if ud and not NonZombies[resDefName] then
 			local rezBaseTime = ud.metalCost / buildpower
