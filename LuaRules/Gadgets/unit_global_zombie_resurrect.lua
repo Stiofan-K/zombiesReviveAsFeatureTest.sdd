@@ -59,7 +59,7 @@ local zombieTeamFullSlow = tonumber(modOptions.zombies_team_full_slow) or 0
 
 local ZOMBIES_REZ_SPEED = tonumber(modOptions.zombies_rezspeed) or 12
 
-local ZOMBIES_PERMA_SLOW = tonumber(modOptions.zombies_permaslow) or 0.5
+local ZOMBIES_PERMA_SLOW = tonumber(modOptions.zombies_speed_mult) or 0.5
 
 local ZOMBIES_REZ_MIN = tonumber(modOptions.zombies_delay) or 10 -- minimum of 10 seconds, max is determined by rez speed
 local ZOMBIES_REZ_MAX = tonumber(modOptions.zombies_delay_max) or 100000 --600 only affects things above 7200 cost at 12 rezspeed.
