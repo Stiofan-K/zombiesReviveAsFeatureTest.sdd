@@ -169,11 +169,12 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	
 	if unitDefIDTable then
 		zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-		zombieCost = UnitDefs[zombieUnitDefID].cost or UnitDefs[zombieUnitDefID].buildTime
+		zombieCost = UnitDefs[zombieUnitDefID].cost
 	end
 	
 	if not zombieCost or zombieCost <= 0 then
 		zombieCost = 200
+		Spring.Echo("Unit has no cost set, defaulting to 200")
 	end
 	
 	while math.floor(currentBudget) >= zombieCost do --TODO zombie cost can end up as a float somehow?
