@@ -170,16 +170,21 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	if unitDefIDTable then
 		zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
 		zombieCost = UnitDefs[zombieUnitDefID].cost
+		if zombieCost <= 0 then
+			zombieCost = UnitDefs[zombieUnitDefID].buildtime
+		end
 	end
-
-	while currentBudget >= zombieCost do --TODO zombie cost can end up as a float somehow?
+	
+	if zombieCost <= 0 then
+		zombieCost = 200
+	end
+	
+	while math.floor(currentBudget) >= zombieCost do --TODO zombie cost can end up as a float somehow?
 		local unitID = GG.Zombies.TurnFeatureIntoUnit(featureID,zombieTeamID,zombieUnitDefID)
 		if unitID then
 			zombieUnits[unitID] = true
 			GG.Zombies.SetZombieBehavior(unitID)
-			if ZOMBIES_PERMA_SLOW then
-				GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
-			end
+			GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
 			totalReviveCount = totalReviveCount +1
 			totalRevivedValue = math.floor(totalRevivedValue + zombieCost)
 		end
@@ -201,9 +206,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 		end
 		zombieUnits[unitID] = true
 		GG.Zombies.SetZombieBehavior(unitID)
-		if ZOMBIES_PERMA_SLOW then
-			GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
-		end
+		GG.Zombies.SetZombieSpeedMult(unitID, ZOMBIES_PERMA_SLOW)
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		currentBudget = currentBudget - zombieCost
 		if not ZOMBIES_PARTIAL_RECLAIM == 1 then
