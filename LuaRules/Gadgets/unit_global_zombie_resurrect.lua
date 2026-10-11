@@ -169,13 +169,10 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	
 	if unitDefIDTable then
 		zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-		zombieCost = UnitDefs[zombieUnitDefID].cost
-		if zombieCost <= 0 then
-			zombieCost = UnitDefs[zombieUnitDefID].buildtime
-		end
+		zombieCost = UnitDefs[zombieUnitDefID].cost or UnitDefs[zombieUnitDefID].buildTime
 	end
 	
-	if zombieCost <= 0 then
+	if not zombieCost or zombieCost <= 0 then
 		zombieCost = 200
 	end
 	
@@ -214,7 +211,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 		end
 		totalReviveCount = totalReviveCount +1
 		totalRevivedValue = math.floor(totalRevivedValue + zombieCost)
-		
+		--TODO check with chickens this seems to do something
 		local health = Spring.GetUnitHealth(unitID) -- TODO something breaks here, check if unit exists?
 		if health then --Last zombie spawned gets its health cut by the % of metal it overspent
 			Spring.SetUnitHealth(unitID, health*((UnitDefs[unitDefID].cost + currentBudget)/UnitDefs[unitDefID].cost))
