@@ -72,7 +72,7 @@ local zombieReviveCyclesCount = tonumber(modOptions.zombies_revive_cycles) or 1
 local zombieWrecksRemain = tonumber(modOptions.zombies_wrecks_remain) or 0
 
 local zombiesReviveOptionsAsString = (modOptions.zombies_revive_options) or nil 
-local zombieReviveOptionMultiRandomise = tonumber(modOptions.zombies_revive_options_multi_random) or nil
+local zombieReviveOptionMultiRandomise = tonumber(modOptions.zombies_revive_options_multi_random) or 0
 local zombieOverflowSpawn = tonumber(modOptions.zombies_revive_options_overflow_spawn) or 1
 
 local zombieBudgetMult = tonumber(modOptions.zombies_budget_multiplier) or 1
@@ -186,7 +186,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 			totalRevivedValue = math.floor(totalRevivedValue + zombieCost)
 		end
 		currentBudget = currentBudget - zombieCost
-		if zombieReviveOptionMultiRandomise and zombieUnitDefID then -- Randomises to a new unit if desired
+		if zombieReviveOptionMultiRandomise == 1 and zombieUnitDefID then -- Randomises to a new unit if desired
 			zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
 			zombieCost = UnitDefs[zombieUnitDefID].cost
 		end
