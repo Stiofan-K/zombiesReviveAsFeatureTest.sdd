@@ -69,6 +69,8 @@ local campaignBattleID = Spring.GetModOptions().singleplayercampaignbattleid and
 local planetIndex = Spring.GetModOptions().singleplayercampaignbattleid
 planetIndex = planetIndex and tonumber(planetIndex)
 
+local zombies = tobool(modOptions.zombies) or false
+
 local SPARE_PLANETWARS_UNITS = false
 local SPARE_REGULAR_UNITS = (modOptions.explodeondefeat == "0" or modOptions.explodeondefeat == 0)
 
@@ -186,6 +188,17 @@ end
 local function GetTeamIsChicken(teamID)
 	local luaAI = Spring.GetTeamLuaAI(teamID)
 	if luaAI and string.find(string.lower(luaAI), "chicken") then
+		return true
+	end
+	return false
+end
+
+local function ZombieIsSecondToLastStanding(allyTeamID)
+	if not zombies then
+		return false
+	end
+	if GG.ZombiesGlobal.GetGlobalReviveAllyTeam() == allyTeamID then
+		Spring.Echo(#spGetAllyTeamList())
 		return true
 	end
 	return false
@@ -334,6 +347,10 @@ local function DestroyAlliance(allianceID, delayLossToNextGameFrame)
 					explodeUnits = false
 				end
 			end
+		end
+		
+		if ZombieIsSecondToLastStanding(allianceID) then
+			return
 		end
 		
 		if Spring.IsCheatingEnabled() then
@@ -551,6 +568,11 @@ local function ProcessLastAlly()
 			end -- continue
 			local teamlist = spGetTeamList(allyTeamID)
 			if (not teamlist) then
+				break
+			end -- continue
+			Spring.Echo(#spGetAllyTeamList())
+			Spring.Echo(#destroyedAlliances)
+			if ZombieIsSecondToLastStanding(allyTeamID) then
 				break
 			end -- continue
 			local hasActiveTeam = false

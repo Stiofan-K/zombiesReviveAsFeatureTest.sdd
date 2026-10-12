@@ -52,10 +52,11 @@ local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
 local zombieTeamID = GaiaTeamID
 local zombieAllyTeamID = GaiaAllyTeamID
 local zombieTeamInput = tonumber(modOptions.zombies_team) or GaiaAllyTeamID -- 0 translates to gaia zombies
-if zombieTeamInput ~= 0 and zombieTeamInput ~= GaiaAllyTeamID then
+if zombieTeamInput ~= 0 and zombieTeamInput+1 ~= GaiaAllyTeamID then
 	zombieAllyTeamID = zombieTeamInput -1 --Teams are offset by 1 in the modoptions, and nil when 0
 end
 local zombieTeamFullSlow = tonumber(modOptions.zombies_team_full_slow) or 0
+local zombieTeamStartsDead = tonumber(modOptions.zombies_team_starts_dead) or 0
 
 local ZOMBIES_REZ_SPEED = tonumber(modOptions.zombies_rezspeed) or 12
 
@@ -384,6 +385,10 @@ local function SetGlobalReviveAllyTeam(newZombieAllyTeamID)
 	end
 end
 
+local function GetGlobalReviveAllyTeam()
+	return zombieAllyTeamID
+end
+
 function gadget:Initialize()
 	if not (tonumber(modOptions.zombies) == 1) then
 		gadgetHandler:RemoveGadget()
@@ -395,9 +400,17 @@ function gadget:Initialize()
 	
 	GG.ZombiesGlobal = {
 		SetGlobalReviveAllyTeam = SetGlobalReviveAllyTeam,
+		GetGlobalReviveAllyTeam = GetGlobalReviveAllyTeam,
 	}
 end
 
 function gadget:GameStart()
 	ReInit() -- anything it does doesnt mess with existing zombies
+	if zombieTeamStartsDead == 1 then
+		for _, unitID in ipairs(spGetAllUnits()) do
+			if zombieAllyTeamID == Spring.GetUnitAllyTeam(unitID)then
+				Spring.DestroyUnit(unitID)
+			end
+		end
+	end
 end
