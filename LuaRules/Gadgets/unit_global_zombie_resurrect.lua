@@ -52,8 +52,11 @@ local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
 local zombieTeamID = GaiaTeamID
 local zombieAllyTeamID = GaiaAllyTeamID
 local zombieTeamInput = tonumber(modOptions.zombies_team) or GaiaAllyTeamID -- 0 translates to gaia zombies
-if zombieTeamInput ~= 0 and zombieTeamInput+1 ~= GaiaAllyTeamID then
+if zombieTeamInput ~= 0 then
 	zombieAllyTeamID = zombieTeamInput -1 --Teams are offset by 1 in the modoptions, and nil when 0
+	if zombieAllyTeamID == GaiaAllyTeamID then
+		zombieAllyTeamID = zombieTeamInput +1 -- TODO there is likely a better solution, it seems sometimes Gaia is not the last team in the list
+	end
 end
 local zombieTeamFullSlow = tonumber(modOptions.zombies_team_full_slow) or 0
 local zombieTeamStartsDead = tonumber(modOptions.zombies_team_starts_dead) or 0
@@ -406,6 +409,8 @@ end
 
 function gadget:GameStart()
 	ReInit() -- anything it does doesnt mess with existing zombies
+	Spring.Echo(zombieAllyTeamID)
+	Spring.Echo(GaiaAllyTeamID)
 	if zombieTeamStartsDead == 1 then
 		for _, unitID in ipairs(spGetAllUnits()) do
 			if zombieAllyTeamID == Spring.GetUnitAllyTeam(unitID)then
