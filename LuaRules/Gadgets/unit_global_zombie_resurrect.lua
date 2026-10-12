@@ -165,11 +165,11 @@ end
 local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	local resDefName, facing = GG.Zombies.GetFeatureResurrectData(featureID)
 	local zombieUnitDefID = nil --nil means we use the features default revival thingy
-	local zombieCost = UnitDefNames[resDefName].cost
+	local zombieCost = UnitDefNames[resDefName].cost or UnitDefNames[resDefName].buildTime
 	
 	if unitDefIDTable then
 		zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-		zombieCost = UnitDefs[zombieUnitDefID].cost
+		zombieCost = UnitDefs[zombieUnitDefID].cost or  UnitDefNames[resDefName].buildTime
 	end
 	
 	if not zombieCost or zombieCost <= 0 then
@@ -189,7 +189,11 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 		currentBudget = currentBudget - zombieCost
 		if zombieReviveOptionMultiRandomise == 1 and zombieUnitDefID then -- Randomises to a new unit if desired
 			zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-			zombieCost = UnitDefs[zombieUnitDefID].cost
+			zombieCost = UnitDefs[zombieUnitDefID].cost or  UnitDefNames[resDefName].buildTime
+			if not zombieCost or zombieCost <= 0 then
+				zombieCost = 200
+				Spring.Echo("Unit has no cost set, defaulting to 200")
+			end
 		end
 		--TODO do we randomise for each spawn?
 		if zombieAllyTeamID ~= GaiaAllyTeamID then
@@ -215,7 +219,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 		--TODO check with chickens this seems to do something
 		local health = Spring.GetUnitHealth(unitID) -- TODO something breaks here, check if unit exists?
 		if health then --Last zombie spawned gets its health cut by the % of metal it overspent
-			Spring.SetUnitHealth(unitID, health*((UnitDefs[unitDefID].cost + currentBudget)/UnitDefs[unitDefID].cost))
+			Spring.SetUnitHealth(unitID, health*((zombieCost + currentBudget)/zombieCost))
 			currentBudget = 0
 		end
 	end
