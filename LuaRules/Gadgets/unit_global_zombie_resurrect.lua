@@ -170,7 +170,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 	
 	if unitDefIDTable then
 		zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-		zombieCost = UnitDefs[zombieUnitDefID].cost or  UnitDefNames[resDefName].buildTime
+		zombieCost = UnitDefs[zombieUnitDefID].cost or UnitDefs[zombieUnitDefID].buildTime
 	end
 	
 	if not zombieCost or zombieCost <= 0 then
@@ -190,7 +190,7 @@ local function HandleZombieRevive(featureID, currentBudget,unitDefIDTable)
 		currentBudget = currentBudget - zombieCost
 		if zombieReviveOptionMultiRandomise == 1 and zombieUnitDefID then -- Randomises to a new unit if desired
 			zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
-			zombieCost = UnitDefs[zombieUnitDefID].cost or  UnitDefNames[resDefName].buildTime
+			zombieCost = UnitDefs[zombieUnitDefID].cost or  UnitDefs[zombieUnitDefID].buildTime
 			if not zombieCost or zombieCost <= 0 then
 				zombieCost = 200
 				Spring.Echo("Unit has no cost set, defaulting to 200")
