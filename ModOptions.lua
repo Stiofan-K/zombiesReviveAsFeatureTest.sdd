@@ -211,7 +211,7 @@ local options = {
     def = false,
   },
   {
-    key    = 'zombies_team_full_slow',
+    key    = 'zombies_team_full_speed_mult',
     name   = 'Zombie Team Full Speedmod',
     desc   = "If the whole Zombie team is effected by the speedmultiplier on start, aswell as all produced units. All gaia units affected by slow regardless",
     type   = 'bool',
