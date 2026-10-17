@@ -230,7 +230,7 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
     key    = 'zombies_wrecks_remain',
     name   = 'Zombie wrecks remain',
     desc   = "If final Zombie resurrection doesnt consume the wreck.",
-    type   = 'silly',
+    type   = "bool",
     section= 'silly',
     def = false,
   },
