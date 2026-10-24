@@ -1,0 +1,56 @@
+return { pw_generic = {
+  name                          = [[Generic Neutral Structure]],
+  description                   = [[Blank]],
+  activateWhenBuilt             = true,
+  autoHeal                      = 5,
+  builder                       = false,
+  canSelfDestruct               = false,
+  category                      = [[SINK UNARMED]],
+  collisionVolumeOffsets        = [[0 0 0]],
+  collisionVolumeScales         = [[120 100 130]],
+  collisionVolumeType           = [[Box]],
+  corpse                        = [[DEAD]],
+
+  customParams                  = {
+    dontcount = [[1]],
+    planetwars_structure = [[1]],
+  },
+
+  explodeAs                     = [[ATOMIC_BLAST]],
+  footprintX                    = 8,
+  footprintZ                    = 9,
+  health                        = 5000,
+  levelGround                   = false,
+  iconType                      = [[mahlazer]],
+  maxSlope                      = 18,
+  metalCost                     = 1000,
+  noAutoFire                    = false,
+  objectName                    = [[pw_techlab.dae]],
+  reclaimable                   = false,
+  script                        = [[nullscriptWithCorpse.lua]],
+  selfDestructAs                = [[ATOMIC_BLAST]],
+  selfDestructCountdown         = 20,
+  sightDistance                 = 273,
+  useBuildingGroundDecal        = false,
+  workerTime                    = 0,
+  -- no yardmap, would make it annoying to autogenerate for templates
+
+  featureDefs                   = {
+    DEAD  = {
+      blocking         = true,
+      resurrectable    = 1,
+      featureDead      = [[HEAP]],
+      --footprintX       = 8, -- autoset by featuredefs_post
+      --footprintZ       = 8,
+      object           = [[pw_techlab_dead.dae]],
+    },
+
+    HEAP  = {
+      blocking         = false,
+      --footprintX       = 8,
+      --footprintZ       = 8,
+      object           = [[debris8x8a.s3o]],
+    },
+  },
+
+} }
