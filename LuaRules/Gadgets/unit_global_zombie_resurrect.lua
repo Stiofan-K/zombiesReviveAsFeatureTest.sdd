@@ -206,8 +206,6 @@ local function HandleZombieRevive(featureID, reviveBudget,reviveTeamID,unitDefID
 	end
 	local rerollThresholdStep = reviveBudget * zombieReviveOptionMultiRandomise
 	local rerollThreshold = reviveBudget - rerollThresholdStep
-	Spring.Echo(rerollThresholdStep)
-	Spring.Echo(rerollThreshold)
 	while reviveBudget >= zombieCost do
 		local unitID = GG.Zombies.TurnFeatureIntoUnit(featureID,reviveTeamID,zombieUnitDefID)
 		if unitID then
@@ -285,15 +283,6 @@ local function ZombieBudgetProcessing(featureID,excessBudget)
 	return thisFeatureBudget
 end
 
-local function FeatureReviveCycles(featureID)
-	if featureReviveCycleCount[featureID] == nil then
-		featureReviveCycleCount[featureID] = zombieReviveCyclesCount - 1 -- one cycle has passed to reach this point
-	else 
-		featureReviveCycleCount[featureID] = featureReviveCycleCount[featureID] - 1
-	end
-	return featureReviveCycleCount[featureID]
-end
-
 local function RezFrameCallback(featureID)
 	local reviveTeamID = GaiaTeamID
 	if zombieAllyTeamID ~= GaiaAllyTeamID and not (zombieAllyTeamID > initalAllianceCount) then
@@ -314,11 +303,12 @@ local function RezFrameCallback(featureID)
 		excessBudget = HandleZombieRevive(featureID, zombieBudget,reviveTeamID, zombieReviveOptions)
 	end
 	
-	local zombieCyclesRemaining = 0
-	if zombieReviveCyclesCount > 1 then
-		zombieCyclesRemaining = FeatureReviveCycles(featureID)
-	end
-	if zombieCyclesRemaining > 0 then
+	if featureReviveCycleCount[featureID] and featureReviveCycleCount[featureID] > 1 then
+		featureReviveCycleCount[featureID] = featureReviveCycleCount[featureID] - 1
+		GG.Zombies.AddFeatureToZombieCountdown(featureID, zombieRezSpeed, ZOMBIES_REZ_MIN, ZOMBIES_REZ_MAX, RezFrameCallback)
+		return
+	elseif zombieReviveCyclesCount > 1 and not featureReviveCycleCount[featureID] then
+		featureReviveCycleCount[featureID] = zombieReviveCyclesCount -1 -- one cycle has passed
 		GG.Zombies.AddFeatureToZombieCountdown(featureID, zombieRezSpeed, ZOMBIES_REZ_MIN, ZOMBIES_REZ_MAX, RezFrameCallback)
 		return
 	end
