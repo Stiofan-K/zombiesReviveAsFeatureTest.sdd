@@ -345,7 +345,8 @@ function gadget:GameFrame(f)
 		if zombieTeamStartsDead == 1 then -- TODO doing it on game start lets people plop a fac. maybe there is some other way of doing things
 			for _, unitID in ipairs(spGetAllUnits()) do
 				if zombieAllyTeamID == Spring.GetUnitAllyTeam(unitID)then
-					Spring.DestroyUnit(unitID)
+					Spring.CreateUnitWreck(unitID)
+					Spring.DestroyUnit(unitID,false,true,nil,true)
 				end
 			end
 		end

@@ -39,30 +39,32 @@ local startingNeutralMobileChance = tonumber(modOptions.starting_neutral_mobile)
 
 
 -- TODO this could go into a config file
+--TODO could also be a modoption input buuuut I am not featurecreaping it further juust yet. it proves the concepts and functionality of the tools
+-- 
 local mobileCamps = {
 	{
-		ecoLight = 0.5,
+		ecoLight = 0.1,
 		raiders = 2,
 		scouts = 4,
-		turretsMedium = 1
+		turretsMedium = 0.1
 	},
 	{
-		ecoLight = 0.5,
+		ecoLight = 0.1,
 		riots = 2,
 		skirmishers = 2,
-		turretsAALight = 1
+		turretsAALight = 0.1
 	},
 	{
-		ecoLight = 0.5,
+		ecoLight = 0.1,
 		assaults = 2,
 		riots = 1,
-		turretsLight = 1
+		turretsLight = 0.1
 	},
 	{
-		ecoLight = 0.5,
+		ecoLight = 0.1,
 		assaults = 1,
 		gunships = 1,
-		turretsLight = 1
+		turretsLight = 0.1
 	}
 }
 
@@ -145,7 +147,7 @@ local function SpawnNeutralCamps(campCount,campValue,mobileChance)
 	local unitIDs
 	local unitComposition
 	for i = 1, campCount/2, 1 do
-		if mobileChance > math.random(0,1) then
+		if mobileChance > math.random() then
 			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileCamps[math.random(1,#mobileCamps)], true)
 		else
 			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticCamps[math.random(1,#staticCamps)], true)

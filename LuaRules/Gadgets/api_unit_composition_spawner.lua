@@ -130,7 +130,6 @@ end
 -- unitDefAndCount defined as {"vehriot" = 2} for example
 local function QueueListSpawn(unitDefAndCount,x,z,teamID,spawnAsWreck,noDropPod,spacing,noGoZones)
 	local spawnedUnits = {}
-	local y = Spring.GetGroundHeight(x, z) + 20
 	local facing = 1
 	local noGoZones = nil
 	local timeToGroundOffset = 5
