@@ -35,6 +35,20 @@ local STRUCTURE_SPACING = 128
 --Utilities
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local function shuffle(t) --Fisher-Yates taught me this trick! (It was actually Github)
+	local tbl = {}
+	for i = 1, #t do
+		tbl[i] = t[i]
+	end
+	for i = #tbl, 2, -1 do
+		local j = math.random(i)
+		tbl[i], tbl[j] = tbl[j], tbl[i]
+	end
+	return tbl
+end
+
+
 -- adds 2 tables together!
 local function AddUnitLists(tableList)
 	local returnList = {}
@@ -71,24 +85,45 @@ end
 
 local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomise)
 	--Spring.Echo(unitDefNameList)
-	local spentBudget = 0
 	local unitDefCountList = {}
-	local unitDefName = unitDefNameList[math.random(1,#unitDefNameList)]
-	local unitCost = GetCostFromUnitDefName(unitDefName)
-	while budget >= spentBudget do
-		if unitDefCountList[unitDefName] then
-			unitDefCountList[unitDefName] = unitDefCountList[unitDefName] + 1
-		else
-			unitDefCountList[unitDefName] = 1
-		end
-		
-		spentBudget = spentBudget + unitCost
-		if multiRandomise then
-			unitDefName = unitDefNameList[math.random(1,#unitDefNameList)]
+	local excess = 0
+	local shuffledUnitDefNameList = shuffle(unitDefNameList)
+	local unitDefName
+	local unitCost
+	local loopWithHit = true
+	while loopWithHit do
+		loopWithHit = false
+		for i = 1,  #shuffledUnitDefNameList, 1 do
+			unitDefName = shuffledUnitDefNameList[i]
 			unitCost = GetCostFromUnitDefName(unitDefName)
+			if not multiRandomise and unitCost <= budget then
+				unitDefCountList[unitDefName] = math.floor(budget/unitCost)
+				excess = budget%unitCost
+				Spring.Echo(unitDefCountList)
+				for key, value in pairs(unitDefCountList) do
+					Spring.Echo(key)
+					Spring.Echo(value)
+				end
+				return unitDefCountList,excess --we found a shuffled unit that fits and go!
+			end
+			if unitCost <= budget then
+				if unitDefCountList[unitDefName] then
+					unitDefCountList[unitDefName] = unitDefCountList[unitDefName] + 1
+				else
+					unitDefCountList[unitDefName] = 1
+				end
+				budget = budget - unitCost
+				loopWithHit = true
+			end
 		end
+		shuffledUnitDefNameList = shuffle(shuffledUnitDefNameList)
 	end
-	return unitDefCountList
+	Spring.Echo(unitDefCountList)
+	for key, value in pairs(unitDefCountList) do
+		Spring.Echo(key)
+		Spring.Echo(value)
+	end
+	return unitDefCountList,budget
 end
 
 --[[ 
@@ -103,13 +138,14 @@ unitTypeAndRatio should be "scouts"= 2 where 2 is the fraction of the budget all
 ]]
 local function CompositionBuilder(budget,unitTypeAndRatio, multiRandomise,typeList)
 	local returnComposition = {}
+	local typeComposition = {}
 	local budgetTotalFraction = 0
+	local excessBudget = 0
+
 	--Spring.Echo(unitTypeAndRatio)
 	if not typeList then
 		typeList = allUnitGroups
 	end
-	
-	Spring.Echo(unitTypeAndRatio)
 	for unitCatergoryList, budgetRatio in pairs(unitTypeAndRatio) do
 		if not budgetRatio then
 			budgetRatio = 1
@@ -119,10 +155,12 @@ local function CompositionBuilder(budget,unitTypeAndRatio, multiRandomise,typeLi
 	if budgetTotalFraction <= 0 then
 		error("the total budgetfraction ends up 0 or negative")
 	end
+
 	--bleh that we loop twice but otherwise we can't get the total right?
 	for unitCatergoryList, budgetRatio in pairs(unitTypeAndRatio) do
-		local budgetToSpend = budget*budgetRatio/budgetTotalFraction
-		returnComposition = AddUnitLists({returnComposition,GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitCatergoryList],multiRandomise)})
+		local budgetToSpend = budget*budgetRatio/budgetTotalFraction + excessBudget
+		typeComposition,excessBudget = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitCatergoryList],multiRandomise)
+		returnComposition = AddUnitLists({returnComposition,typeComposition})
 	end
 	return returnComposition
 end

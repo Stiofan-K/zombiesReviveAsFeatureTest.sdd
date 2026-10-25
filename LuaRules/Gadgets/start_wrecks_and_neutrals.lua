@@ -37,56 +37,66 @@ local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 1000
 local startingNeutralMobileChance = tonumber(modOptions.starting_neutral_mobile) or 0
 
+local CENTER_CAMP_MULT = 3
+
 
 -- TODO this could go into a config file
 --TODO could also be a modoption input buuuut I am not featurecreaping it further juust yet. it proves the concepts and functionality of the tools
 -- 
 local mobileCamps = {
 	{
-		ecoLight = 0.1,
+		ecoLight = 1,
+		turretsMedium = 0.1,
 		raiders = 2,
-		scouts = 4,
-		turretsMedium = 0.1
+		scouts = 3,
 	},
 	{
-		ecoLight = 0.1,
+		ecoLight = 1,
+		turretsAALight = 0.1,
 		riots = 2,
 		skirmishers = 2,
-		turretsAALight = 0.1
 	},
 	{
-		ecoLight = 0.1,
+		ecoLight = 1,
+		turretsLight = 0.1,
 		assaults = 2,
 		riots = 1,
-		turretsLight = 0.1
 	},
 	{
-		ecoLight = 0.1,
+		ecoLight = 1,
+		turretsLight = 0.1,
 		assaults = 1,
 		gunships = 1,
-		turretsLight = 0.1
 	}
 }
 
 local staticCamps = {
 	{
+		pwSupport = 0.1,
 		ecoLight = 0.5,
 		ecoSupport = 0.1,
-		pwSupport = 0.1,
 		turretsMedium = 1,
 		turretsAALight = 0.1,
 		turretsLight = 1
 	},
 	{
+		pwGreebles = 1,
 		ecoLight = 0.5,
 		ecoSupport = 0.1,
-		pwGreebles = 1,
 		turretsMedium = 1,
 		turretsAALight = 1,
 		turretsLight = 1
 	},
 	{
 		pwSupport = 0.1,
+		pwGreebles = 1,
+		ecoSupport = 0.1,
+		turretsMedium = 1,
+		turretsAALight = 1,
+		turretsLight = 1
+	},
+	{
+		factories = 0.1,
 		pwGreebles = 1,
 		ecoSupport = 0.1,
 		turretsMedium = 1,
@@ -136,7 +146,7 @@ local function CheckStartboxOverlap(x,z)
 	local overlaps = false
 	for i = 0, maxStartboxcount, 1 do
 		if GG.CheckStartbox(i,x,z) then
-			Spring.MarkerAddPoint(x, 0, z, "Overlap?")
+			--Spring.MarkerAddPoint(x, 0, z, "Overlap?")
 			overlaps = true
 		end
 	end
@@ -173,7 +183,7 @@ local function SpawnNeutralCamps(campCount,campValue,mobileChance)
 	end
 	--uneven number results in big map center camp :o 
 	if campCount % 2 == 1 then
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*3,largeCamp, true)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
 		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,false,nil,math.random(10,64),noGoZones)
 		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 	end
@@ -193,12 +203,12 @@ local function SpawnWreckClump(campCount,campValue)
 		--we mirror for an attempt at fairness.
 		local x,z = math.random(0,mapSizeX),math.random(mapSizeZ)
 		local x2,z2 = mapSizeX-x,mapSizeZ-z
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, true,nil,math.random(10,64),noGoZones)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, true,nil,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, true,nil,math.random(0,128),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, true,nil,math.random(0,128),noGoZones)
 	end
 	--uneven number results in big map center field
 	if campCount % 2 == 1 then
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*3,largeCamp, true)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
 		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID, true,nil,math.random(10,64),noGoZones)
 	end
 end

@@ -127,11 +127,11 @@ local largeUnitComps = {
     {
         assaults = 1,
         artillery = 1,
-        raiders = 1,
+        raiders = 0.5,
     },
     {
         stridersDemi = 1,
-        raiders = 1,
+        raiders = 0.5,
     },
     {
         stridersDemi = 1,
@@ -150,31 +150,24 @@ local largeUnitComps = {
         assaults = 1
     },
     {
-        antiHeavy =1 
+        antiHeavy = 1
     }
 }
 local hugeUnitComps = {
     {
-        assaults = 1,
-        artillery = 1,
-        raiders = 1,
-        support = 0.0001,
-    },
-    {
         stridersDemi = 1,
-        raiders = 1,
-        support = 0.0001,
-    },
-    {
         bombers = 1
     },
     {
         stridersMedium = 1,
-        support = 1,
+        assaults = 1
+    },
+    {
+        stridersMedium = 1,
+        support = 0.001,
     },
     {
         stridersDemi = 1,
-        assaults = 1,
         aerialAA = 1,
     },
     {
@@ -188,18 +181,23 @@ local function GetUnitTypeAndRatiosForBudget(budget)
         budget = 300
     end
     if not (budget > 700) then
+        Spring.Echo("tinyComp")
         return tinyUnitComps[math.random(#tinyUnitComps)]
     end
     if not (budget > 1500) then
+        Spring.Echo("smallComp")
         return smallUnitComps[math.random(#smallUnitComps)]
     end
     if not (budget > 3500) then
+        Spring.Echo("mediumComp")
         return mediumUnitComps[math.random(#mediumUnitComps)]
     end
     if not (budget > 7500) then
+         Spring.Echo("largeComp")
         return largeUnitComps[math.random(#largeUnitComps)]
     end
     if not (budget > 13000) then
+         Spring.Echo("hugeComp")
         return hugeUnitComps[math.random(#hugeUnitComps)]
     end
     return {assaults = 1}
@@ -208,15 +206,15 @@ end
 
 local function TeamReinforcements(budget)
     local UnitTypeAndRatios = GetUnitTypeAndRatiosForBudget(budget)
-    for key, value in pairs(UnitTypeAndRatios) do
+    --[[for key, value in pairs(UnitTypeAndRatios) do
         Spring.Echo(key)
         Spring.Echo(value)
-    end
+    end --]]
     local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,UnitTypeAndRatios, false)
-    for key, value in pairs(unitComposition) do
+    --[[for key, value in pairs(unitComposition) do
         Spring.Echo(key)
         Spring.Echo(value)
-    end
+    end --]]
     for teamID, position in pairs(teamSpawnPosition) do
         Spring.Echo(teamID)
         local x,z = position[1],position[2]
@@ -224,13 +222,24 @@ local function TeamReinforcements(budget)
     end
 end
 
+--TODO improve the spawning to prefer buildings, then mid
 local function GaiaReinforcements(budget)
     local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,GetUnitTypeAndRatiosForBudget(budget), true)
     local gaiaUnits = Spring.GetTeamUnits(GaiaTeamID)
+    local gaiaBuildings = {}
     if gaiaUnits and #gaiaUnits > 0 then
+        for index, unitID in ipairs(gaiaUnits) do
+            local unitSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
+            if unitSpeed or unitSpeed == 0 then
+                gaiaBuildings[unitID] = true
+            end
+        end
         local unitToSpawnOn = gaiaUnits[math.random(1,#gaiaUnits)]
+        if gaiaBuildings and #gaiaBuildings > 0 then -- we prefer buildings to spawn on
+            unitToSpawnOn = gaiaUnits[math.random(1,#gaiaBuildings)]
+        end
         local x,y,z = Spring.GetUnitBasePosition(unitToSpawnOn)
-        -- Sit and wait when assisting allies
+        -- Sit and wait when spawned on allies
         GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID)
     else
         -- move on your own

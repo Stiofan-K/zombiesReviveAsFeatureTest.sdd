@@ -283,7 +283,7 @@ local function SpawnUnit(unitDefID, teamID, position, alwaysVisible, allowFailur
 	end
 	
 	local y = spGetGroundHeight(x,z)
-	if unitDef.yardMap then
+	if unitDef.speed and unitDef.speed ~= 0 then
 		if (y > 0 or (not unitDef.floatOnWater)) then
 			flattenAreas = flattenAreas or {}
 			flattenAreas[#flattenAreas + 1] = {x-sX, z-sZ, x+sX, z+sZ, y}
