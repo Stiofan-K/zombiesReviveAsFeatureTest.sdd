@@ -108,14 +108,13 @@ local allGroups = {
         [[shieldarty]],
         [[tankarty]],
         [[tankheavyarty]],
-        [[veharty]], -- feels skirmishy, but what is artillery 
+        [[veharty]], -- feels skirmishy, but what is artillery but long range skirming 
         [[vehheavyarty]],
     },
     bombs = {
         [[amphbomb]],
         [[cloakbomb]],
         [[gunshipbomb]],
-        [[jumpbomb]],
         [[shieldbomb]],
     },
     aerialAA = {
@@ -136,7 +135,7 @@ local allGroups = {
         [[gunshipheavyskirm]],
         [[gunshipskirm]],
     },
-    transport = {
+    transports = {
         [[gunshipheavyskirm]],
         [[gunshiptrans]],
     },
@@ -151,11 +150,15 @@ local allGroups = {
         [[cloakjammer]],
         [[shieldshield]],
     },
+    antiHeavy = {
+        [[jumpbomb]],
+        [[striderantiheavy]], 
+        [[gunshipemp]], 
+    },
     stridersDemi = {
         [[amphassault]],
         [[jumpsumo]],
         [[spidercrabe]],
-        [[striderantiheavy]], --Ulti is here
         [[tankheavyassault]],
     },
     stridersMedium = {
@@ -168,7 +171,7 @@ local allGroups = {
     stridersHeavy = {
         [[nebula]], --fuck it, nebula
         [[striderbantha]],
-        [[striderdetriment]],
+        --[[striderdetriment]] --TODO figure out where to put this :0
     },
     
     -- Get ships from shipfac 
@@ -188,7 +191,6 @@ local allGroups = {
        
     },
     drones = {
-        [[gunshipemp]], --Gnat is here, unsure if good
         [[dronecarry]],
         [[dronefighter]],
         [[droneheavyslow]],
@@ -202,6 +204,7 @@ local allGroups = {
         [[hoverraid]],
         [[amphriot]],
     },
+
         --TODO
     extra = {
         [[subscout]],

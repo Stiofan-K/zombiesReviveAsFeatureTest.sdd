@@ -1135,15 +1135,20 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		step    = 0.001,
 	},
   {
-		key     = "reinforce_drop_team",
-		name    = "Reinforcement Drops Team",
-		desc    = "Chance that a neutral starting camp are mobile units.",
+		key     = "reinforce_drop",
+		name    = "Player Reinforcement Drops ",
+		desc    = "If everyone gets reinforcement drops.",
 		section = 'mapsettings',
-    type    = 'number',
-		def     = 99,
-		min     = 0,
-		max     = 100,
-		step    = 1,
+    type   = 'bool',
+    def    = false,
+	},
+  {
+		key     = "reinforce_drop_gaia",
+		name    = "Neutral Reinforcement Drops",
+		desc    = "How many much unitvalue will be in each cluster.",
+		section = 'mapsettings',
+    type   = 'bool',
+    def    = false,
 	},
   {
 		key     = "reinforce_drop_base",
@@ -1167,15 +1172,17 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		max     = 100000,
 		step    = 1,
 	},
-  {
-		key     = "reinforce_drop_gaia",
-		name    = "If Gaia gets Reinforcements",
+    {
+		key     = "reinforce_drop_gaia_mult",
+		name    = "Gaia Reinforcment multiplier",
 		desc    = "How many much unitvalue will be in each cluster.",
 		section = 'mapsettings',
-    type   = 'bool',
-    def    = false,
+    type    = 'number',
+		def     = 1,
+		min     = 0,
+		max     = 100,
+		step    = 0.01,
 	},
-
   
 	--[[ Engine option, would need proper UI before enabling
 	{
