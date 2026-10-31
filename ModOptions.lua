@@ -1172,7 +1172,7 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		max     = 100000,
 		step    = 1,
 	},
-    {
+  {
 		key     = "reinforce_drop_gaia_mult",
 		name    = "Gaia Reinforcment multiplier",
 		desc    = "How many much unitvalue will be in each cluster.",

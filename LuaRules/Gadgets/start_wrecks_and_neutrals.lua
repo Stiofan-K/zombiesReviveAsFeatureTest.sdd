@@ -72,35 +72,35 @@ local mobileCamps = {
 
 local staticCamps = {
 	{
-		pwSupport = 0.1,
+		pwSupport = 1,
 		ecoLight = 0.5,
-		ecoSupport = 0.1,
+		ecoSupport = 0.5,
 		turretsMedium = 1,
-		turretsAALight = 0.1,
+		turretsAALight = 0.5,
 		turretsLight = 1
 	},
 	{
 		pwGreebles = 1,
 		ecoLight = 0.5,
-		ecoSupport = 0.1,
+		ecoSupport = 0.5,
 		turretsMedium = 1,
-		turretsAALight = 1,
+		turretsAALight = 0.5,
 		turretsLight = 1
 	},
 	{
-		pwSupport = 0.1,
+		pwSupport = 1,
 		pwGreebles = 1,
 		ecoSupport = 0.1,
 		turretsMedium = 1,
-		turretsAALight = 1,
+		turretsAALight = 0.5,
 		turretsLight = 1
 	},
 	{
-		factories = 0.1,
+		factories = 1,
 		pwGreebles = 1,
 		ecoSupport = 0.1,
 		turretsMedium = 1,
-		turretsAALight = 1,
+		turretsAALight = 0.5,
 		turretsLight = 1
 	}
 }
@@ -120,20 +120,45 @@ local function spawningTest()
 	
 	local spawnList = {}
 	
-	local riots = GG.UnitSpawnerGetRandomUnitsFromListForCost(1000,allUnitGroups.riots)
-	local skirmishers = GG.UnitSpawnerGetRandomUnitsFromListForCost(1000,allUnitGroups.skirmishers)
+	-- For Cost test
+	local riots = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.riots)
+	-- for cost test, with multirandom
+	local assaults = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.assaults,true)
 	
-	spawnList = GG.UnitSpawnerAddUnitLists({riots,skirmishers})
+	-- count test
+	local raiders = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.raiders)
+	-- count test, with multirandom
+	local skirmishers = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.skirmishers,true)
 	
-	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID,true)
+	-- direct insert test
+	local dante = {striderdante = 1,athena = 2}
+	-- complex direct insert test
+	local aa = {
+		{unitDefName = [[vehaa]], unitCount = 3, wreckChance = 0.5, spacing = 1000}, -- spacing accounts for future spawns, so order does matter sorta
+		{unitDefName = [[spideraa]], unitCount = 3, wreckChance = 1, spacing = 1}
+	}
+	
+	
+	spawnList = GG.UnitSpawnerAddUnitLists({raiders,riots,skirmishers,assaults,dante,aa})
+
+	--GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+
+	
+	--mass editing test
+	for index, value in ipairs(spawnList) do
+		value.wreckChance = 1
+	end
+	
+	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+
 end
 
 local function CompositionBuilderTest()
 	local spawnList = GG.UnitSpawnerCompositionBuilder(
 	1000,
 		{
-			--TODO expand so that multirandom and wreck chance is a per thing thing
+			{unitGroup = "pwGreebles", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
 			assaults = 1,
 			skirmishers = 1,
 			turretsLight = 1
@@ -176,15 +201,15 @@ local function SpawnNeutralCamps(campCount,campValue,mobileChance)
 				break
 			end
 		end
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, false,nil,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, math.random(10,64),noGoZones)
 		Spring.MarkerAddPoint(x, 0, z, "Reports of Remnants")
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, false,nil,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, math.random(10,64),noGoZones)
 		Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 	end
 	--uneven number results in big map center camp :o 
 	if campCount % 2 == 1 then
 		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,false,nil,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,math.random(10,64),noGoZones)
 		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 	end
 end
@@ -203,13 +228,13 @@ local function SpawnWreckClump(campCount,campValue)
 		--we mirror for an attempt at fairness.
 		local x,z = math.random(0,mapSizeX),math.random(mapSizeZ)
 		local x2,z2 = mapSizeX-x,mapSizeZ-z
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, true,nil,math.random(0,128),noGoZones)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, true,nil,math.random(0,128),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID,math.random(0,128),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID,math.random(0,128),noGoZones)
 	end
 	--uneven number results in big map center field
 	if campCount % 2 == 1 then
 		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID, true,nil,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,math.random(10,64),noGoZones)
 	end
 end
 
@@ -220,13 +245,17 @@ end
 
 function gadget:GameStart()
 	maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n")
-	Spring.Echo(maxStartboxcount)
-	
+
 	if startingNeutralCount and startingNeutralValue and startingNeutralCount >= 0 and startingNeutralValue >= 0 then
 		SpawnNeutralCamps(startingNeutralCount,startingNeutralValue,startingNeutralMobileChance)
 	end
 	if startingWreckCount and startingWreckValue and startingWreckCount >= 0 and startingWreckValue >= 0 then
 		SpawnWreckClump(startingWreckCount,startingWreckValue)
 	end
+	
+	Spring.Echo("spawningTest")
+	spawningTest()
+	Spring.Echo("compositionTest")
+	CompositionBuilderTest()
 	
 end

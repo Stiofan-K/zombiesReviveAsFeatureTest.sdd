@@ -89,6 +89,7 @@ local allGroups = {
         [[shieldaa]],
         [[spideraa]],
         [[tankaa]],
+        [[vehaa]],
     },
     assaults = {
         [[cloakassault]],
@@ -97,7 +98,6 @@ local allGroups = {
         [[shieldassault]],
         [[spiderassault]],
         [[tankassault]],
-        [[vehaa]],
         [[vehassault]],
     },
     artillery = {
