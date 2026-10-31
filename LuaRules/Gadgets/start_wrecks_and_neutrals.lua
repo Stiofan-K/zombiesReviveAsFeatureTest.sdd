@@ -151,7 +151,6 @@ local function spawningTest()
 	end
 	
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
-
 end
 
 local function CompositionBuilderTest()

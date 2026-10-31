@@ -221,21 +221,19 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 			unitGroup = index
 			budgetFraction = data or 1
 		else
-			Spring.Echo("Grouping or data of spawning")
+			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
-		Spring.Echo(unitGroup)
-		Spring.Echo(wreckChance)
 		typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
-		for i = 1, #typeComposition, 1 do
-			typeComposition[i].wreckChance = wreckChance
-		end
-		returnComposition = AddUnitLists({returnComposition,typeComposition})
 		if unitCount < minUnits then
 			local unitsToMin = minUnits - unitCount
-			typeComposition = GetRandomUnitsFromListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
-			returnComposition = AddUnitLists({returnComposition,typeComposition})
+			local minUnitComposition = GetRandomUnitsFromListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
+			typeComposition = AddUnitLists({minUnitComposition,typeComposition})
 		end
+		for index, value in ipairs(typeComposition) do
+			value.wreckChance = wreckChance
+		end
+		returnComposition = AddUnitLists({returnComposition,typeComposition})
 	end
 	return returnComposition
 end
@@ -250,7 +248,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		local unitDefName = nil
 		local spawnCount = 1
 		local spawnAsWreckChance = 0 --TODO hmm chance vs ratio... I suppose we can have wrecks, and normal units defined, but a chance covers that too
-		local spacing = 10
+		local spacing = 0--10
 		local dropPod = true
 		local spawnPattern = "centered"
 		if type(data) == "table" and data.unitDefName then
