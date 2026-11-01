@@ -115,57 +115,6 @@ local largeCamp = {
 	artillery = 1,
 }
 
--- TODO remove or keep functions that show off how stuff works?
-local function spawningTest()
-	
-	local spawnList = {}
-	
-	-- For Cost test
-	local riots = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.riots)
-	-- for cost test, with multirandom
-	local assaults = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.assaults,true)
-	
-	-- count test
-	local raiders = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.raiders)
-	-- count test, with multirandom
-	local skirmishers = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.skirmishers,true)
-	
-	-- direct insert test
-	local dante = {striderdante = 1,athena = 2}
-	-- complex direct insert test
-	local aa = {
-		{unitDefName = [[vehaa]], unitCount = 3, wreckChance = 0.5, spacing = 1000}, -- spacing accounts for future spawns, so order does matter sorta
-		{unitDefName = [[spideraa]], unitCount = 3, wreckChance = 1, spacing = 1}
-	}
-	
-	
-	spawnList = GG.UnitSpawnerAddUnitLists({raiders,riots,skirmishers,assaults,dante,aa})
-
-	--GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
-	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
-
-	
-	--mass editing test
-	for index, value in ipairs(spawnList) do
-		value.wreckChance = 1
-	end
-	
-	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
-end
-
-local function CompositionBuilderTest()
-	local spawnList = GG.UnitSpawnerCompositionBuilder(
-	1000,
-		{
-			{unitGroup = "pwGreebles", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
-			assaults = 1,
-			skirmishers = 1,
-			turretsLight = 1
-		}
-	)
-	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
-end
-
 local function CheckStartboxOverlap(x,z)
 	local overlaps = false
 	for i = 0, maxStartboxcount, 1 do
@@ -182,9 +131,9 @@ local function SpawnNeutralCamps(campCount,campValue,mobileChance)
 	local unitComposition
 	for i = 1, campCount/2, 1 do
 		if mobileChance > math.random() then
-			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileCamps[math.random(1,#mobileCamps)], true)
+			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileCamps[math.random(1,#mobileCamps)])
 		else
-			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticCamps[math.random(1,#staticCamps)], true)
+			unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticCamps[math.random(1,#staticCamps)])
 		end
 		--TODO my map and startbox jutsu is not as strong, but also not too integral to show off the underlying stuff. small startboxes get close spawns
 		--we mirror for an attempt at fairness.
@@ -200,15 +149,15 @@ local function SpawnNeutralCamps(campCount,campValue,mobileChance)
 				break
 			end
 		end
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID, math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID,noGoZones)
 		Spring.MarkerAddPoint(x, 0, z, "Reports of Remnants")
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID, math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID,noGoZones)
 		Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 	end
 	--uneven number results in big map center camp :o 
 	if campCount % 2 == 1 then
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,math.random(10,64),noGoZones)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,noGoZones)
 		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 	end
 end
@@ -227,13 +176,13 @@ local function SpawnWreckClump(campCount,campValue)
 		--we mirror for an attempt at fairness.
 		local x,z = math.random(0,mapSizeX),math.random(mapSizeZ)
 		local x2,z2 = mapSizeX-x,mapSizeZ-z
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID,math.random(0,128),noGoZones)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID,math.random(0,128),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID,noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,GaiaTeamID,noGoZones)
 	end
 	--uneven number results in big map center field
 	if campCount % 2 == 1 then
 		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue*CENTER_CAMP_MULT,largeCamp, true)
-		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,math.random(10,64),noGoZones)
+		unitIDs,noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID,noGoZones)
 	end
 end
 
@@ -243,6 +192,10 @@ function gadget:Initialize()
 end
 
 function gadget:GameStart()
+	-- 512 is the size of a map unit
+	Spring.Echo(mapSizeX)
+	Spring.Echo(mapSizeZ)
+	
 	maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n")
 
 	if startingNeutralCount and startingNeutralValue and startingNeutralCount >= 0 and startingNeutralValue >= 0 then
@@ -251,10 +204,4 @@ function gadget:GameStart()
 	if startingWreckCount and startingWreckValue and startingWreckCount >= 0 and startingWreckValue >= 0 then
 		SpawnWreckClump(startingWreckCount,startingWreckValue)
 	end
-	
-	Spring.Echo("spawningTest")
-	spawningTest()
-	Spring.Echo("compositionTest")
-	CompositionBuilderTest()
-	
 end

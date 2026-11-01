@@ -270,7 +270,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		end
 		for i = 1, spawnCount, 1 do
 			local unitID = nil
-			Spring.MarkerAddPoint(x, 0, z, "SearchStart")
+			--Spring.MarkerAddPoint(x, 0, z, "SearchStart")
 			local localX,localZ,facing,sX,sZ,searchSuccess = GG.NoGoZonesGetValidSpawnPositionForUnit(UnitDefNames[unitDefName].id,{x,z},false,noGoZones)
 			if spawnPattern == "centered" and firstSearchSuccess and searchSuccess then
 				x,z = localX,localZ --TODO there is a different spawnpattern possible by using the following point for the next spawn start
@@ -305,6 +305,60 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 	end
 	return spawnedUnits, noGoZones
 end
+
+-- TODO remove or keep functions that show off how stuff works?
+local function spawningTest()
+	local spawnList = {}
+	-- For Cost test
+	local riots = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.riots)
+	-- for cost test, with multirandom
+	local assaults = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.assaults,true)
+	
+	-- count test
+	local raiders = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.raiders)
+	-- count test, with multirandom
+	local skirmishers = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.skirmishers,true)
+	
+	-- direct insert test
+	local dante = {striderdante = 1,athena = 2}
+	-- complex direct insert test
+	local aa = {
+		{unitDefName = [[vehaa]], unitCount = 3, wreckChance = 0.5, spacing = 1000}, -- spacing accounts for future spawns, so order does matter sorta
+		{unitDefName = [[spideraa]], unitCount = 3, wreckChance = 1, spacing = 1}
+	}
+	spawnList = GG.UnitSpawnerAddUnitLists({raiders,riots,skirmishers,assaults,dante,aa})
+
+	--GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+	
+	--mass editing test
+	for index, value in ipairs(spawnList) do
+		value.wreckChance = 1
+	end
+	
+	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+end
+
+local function CompositionBuilderTest()
+	local spawnList = GG.UnitSpawnerCompositionBuilder(
+	1000,
+		{
+			{unitGroup = "pwGreebles", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
+			assaults = 1,
+			skirmishers = 1,
+			turretsLight = 1
+		}
+	)
+	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+end
+--[[
+function gadget:GameStart()
+	Spring.Echo("spawningTest")
+	spawningTest()
+	Spring.Echo("compositionTest")
+	CompositionBuilderTest()
+end
+]]
 
 GG.UnitSpawnerAddUnitLists = AddUnitLists
 GG.UnitSpawnerGetRandomUnitsFromListForCost = GetRandomUnitsFromListForCost
