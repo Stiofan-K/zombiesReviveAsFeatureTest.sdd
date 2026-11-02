@@ -28,7 +28,7 @@ local modOptions = Spring.GetModOptions()
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local allUnitGroups = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
-
+local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local UNIT_SPACING = 0
 local STRUCTURE_SPACING = 128
 
@@ -204,19 +204,16 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 	for index, data in pairs(unitGroupAndParams) do
 		local unitGroup = nil
 		local budgetFraction = 1
-		local multiRandomise = false
+		local multiRandomise = true
 		local minUnits = 1
 		local wreckChance = 0
-		local spacing = 64
 		local unitCount
 		if type(data) == "table" and data.unitGroup then
 			unitGroup = data.unitGroup
 			budgetFraction = data.budgetFraction or budgetFraction
 			multiRandomise = data.multiRandomise or multiRandomise
 			minUnits = data.minUnits or minUnits
-			budgetFraction = data.fraction or budgetFraction
 			wreckChance = data.wreckChance or wreckChance
-			spacing = data.spacing or spacing
 		elseif type(data) == "number" then
 			unitGroup = index
 			budgetFraction = data or 1
@@ -248,7 +245,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		local unitDefName = nil
 		local spawnCount = 1
 		local spawnAsWreckChance = 0 --TODO hmm chance vs ratio... I suppose we can have wrecks, and normal units defined, but a chance covers that too
-		local spacing = 0--10
+		local spacing = math.random (0,96)
 		local dropPod = true
 		local spawnPattern = "centered"
 		if type(data) == "table" and data.unitDefName then
@@ -294,6 +291,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 				noGoZones = GG.NoGoZonesAddNoGoZone(localX,localZ,math.max(sX, sZ) + spacing,noGoZones)
 				if spawnAsWreckChance == 1 or spawnAsWreckChance > math.random() then
 					Spring.CreateUnitWreck(unitID)
+					--TODO for factories this causes a looping error in the factory flattening gadget until another factory is placed. Seems to be harmless, but is best handled still
 					Spring.DestroyUnit(unitID,false,true,nil,true)
 				else
 					spawnedUnits[unitID] = true
@@ -304,6 +302,27 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		end
 	end
 	return spawnedUnits, noGoZones
+end
+
+local function GetGroupCompositionByBudgetAndType(budget,compositionType)
+    if not budget then
+        budget = 300
+    end
+    if not compositionType then
+        compositionType = allCompositions.mobileCompositions
+    end
+    if (budget < 500) then
+        return compositionType.tinyCost[math.random(#compositionType.tinyCost)]
+	elseif (budget < 1500) then
+        return compositionType.lowCost[math.random(#compositionType.lowCost)]
+    elseif (budget < 2000) then
+        return compositionType.mediumCost[math.random(#compositionType.mediumCost)]
+    elseif (budget < 7500) then
+        return compositionType.highCost[math.random(#compositionType.highCost)]
+    elseif (budget >= 7500) then
+        return compositionType.ludicrousCost[math.random(#compositionType.ludicrousCost)]
+    end
+    return {assaults = 1}
 end
 
 -- TODO remove or keep functions that show off how stuff works?
@@ -361,6 +380,7 @@ end
 ]]
 
 GG.UnitSpawnerAddUnitLists = AddUnitLists
+GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
 GG.UnitSpawnerGetRandomUnitsFromListForCost = GetRandomUnitsFromListForCost
 GG.UnitSpawnerGetRandomUnitsFromListByCount = GetRandomUnitsFromListByCount
 GG.UnitSpawnerCompositionBuilder = CompositionBuilder

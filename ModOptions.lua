@@ -1125,8 +1125,8 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 	},
   {
 		key     = "starting_neutral_mobile",
-		name    = "Neutral Starting Camps Mobile Chance",
-		desc    = "Chance that a neutral starting camp are mobile units.",
+		name    = "Neutral Starting Camps Mobile Ratio",
+		desc    = "Ratio of Camp budget going into mobile units.",
 		section = 'mapsettings',
     type    = 'number',
 		def     = 0,

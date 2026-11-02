@@ -27,9 +27,9 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local modOptions = Spring.GetModOptions()
 local GaiaTeamID     = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
-local allUnitComps = VFS.Include("LuaRules/Configs/unit_compositions.lua")
-local staticUnitComps = allUnitComps.staticCompositions
-local mobileUnitComps = allUnitComps.mobileCompositions
+local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
+local staticCompositions = allCompositions.staticCompositions
+local mobileCompositions = allCompositions.mobileCompositions
 local teamSpawnPosition = {}
     
 local reinforceInput = tonumber(modOptions.reinforce_drop) or 0
@@ -39,41 +39,15 @@ local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 300
 local reinforceGaiaMult = tonumber(modOptions.reinforce_drop_gaia_mult) or 1
 
 
-local function GetUnitTypeAndRatiosForBudget(budget)
-    if not budget then
-        budget = 300
-    end
-    if (budget < 500) then
-        Spring.Echo("tinyComp")
-        return mobileUnitComps.tinyCost[math.random(#mobileUnitComps.tinyCost)]
-    end
-    if (budget < 1500) then
-        Spring.Echo("smallComp")
-        return mobileUnitComps.lowCost[math.random(#mobileUnitComps.lowCost)]
-    end
-    if (budget < 2000) then
-        Spring.Echo("mediumComp")
-        return mobileUnitComps.mediumCost[math.random(#mobileUnitComps.mediumCost)]
-    end
-    if (budget < 7500) then
-         Spring.Echo("largeComp")
-        return mobileUnitComps.highCost[math.random(#mobileUnitComps.highCost)]
-    end
-    if (budget >= 7500) then
-         Spring.Echo("hugeComp")
-        return mobileUnitComps.ludicrousCost[math.random(#mobileUnitComps.ludicrousCost)]
-    end
-    return {assaults = 1}
-end
-
-
 local function TeamReinforcements(budget)
-    local UnitTypeAndRatios = GetUnitTypeAndRatiosForBudget(budget)
+    local UnitTypeAndRatios = GG.UnitSpawnerGetGroupCompositionByBudgetAndType(budget)
     local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,UnitTypeAndRatios)
+    --[[
     Spring.Echo("ReinforceCompUnits")
     for key, value in pairs(unitComposition) do
         Spring.Echo(value.unitDefName .." = "..value.unitCount)
     end
+    ]]
     for teamID, position in pairs(teamSpawnPosition) do
         --Spring.Echo(teamID)
         local x,z = position[1],position[2]
@@ -83,11 +57,13 @@ end
 
 --TODO improve the spawning to prefer buildings, then mid
 local function GaiaReinforcements(budget)
-    local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,GetUnitTypeAndRatiosForBudget(budget))
+    local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,GG.UnitSpawnerGetGroupCompositionByBudgetAndType(budget))
+    --[[
     Spring.Echo("GaiaCompUnits")
     for key, value in pairs(unitComposition) do
         Spring.Echo(value.unitDefName .." = "..value.unitCount)
     end
+    ]]
     local gaiaUnits = Spring.GetTeamUnits(GaiaTeamID)
     local gaiaBuildings = {}
     if gaiaUnits and #gaiaUnits > 0 then
@@ -100,17 +76,22 @@ local function GaiaReinforcements(budget)
         local unitToSpawnOn = gaiaUnits[math.random(1,#gaiaUnits)]
         if gaiaBuildings and #gaiaBuildings > 0 then -- we prefer buildings to spawn on
             unitToSpawnOn = gaiaUnits[math.random(1,#gaiaBuildings)]
+            local x,y,z = Spring.GetUnitBasePosition(unitToSpawnOn)
+            -- Sit and wait when spawned on allies
+            GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID)
+            return
         end
-        local x,y,z = Spring.GetUnitBasePosition(unitToSpawnOn)
+        -- Lets not spawn on moving units
+        --local x,y,z = Spring.GetUnitBasePosition(unitToSpawnOn)
         -- Sit and wait when spawned on allies
-        GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID)
-    else
-        -- move on your own
-        local unitIDs, noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID)
-        for unitID, _ in pairs(unitIDs) do
-            GG.Zombies.SetZombieBehavior(unitID)
-        end
-    end 
+        --GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,GaiaTeamID)
+        -- return
+    end
+    -- move on your own
+    local unitIDs, noGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,GaiaTeamID)
+    for unitID, _ in pairs(unitIDs) do
+        GG.Zombies.SetZombieBehavior(unitID)
+    end
 end
 
 function gadget:GameFrame(f)

@@ -31,12 +31,12 @@ local allCompositions = {
             {ecoHeavy = 1, turretsHeavy = 1, ecoLight = 0, ecoSupport= 0.1}
         },
         highCost = { -- less than 7500 cost, a relatively developed base, turrets, factories, caretakers, maybe a desolator, big AA?
-            {ecoHeavy = 1,turretsHeavy = 1,turretsSkirm = 1, ecoSupport = 0.5, turretsLight =1, turretsRiot = 1, staticSupport =1,ecoLight = 0.5,},
+            {ecoHeavy = 1,turretsHeavy = 1,turretsSkirm = 1, ecoSupport = 0.5, turretsLight =1, turretsRiot = 1, staticSupport =1,ecoLight = 0.5,factories = 0.5},
             {ecoHeavy = 1,turretsHeavy = 1,turretsSkirm = 1, ecoSupport = 0.5, factories = 0.5,turretsLight =1, turretsRiot = 1, staticSupport =1},
             {ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1}
         },
         ludicrousCost = {-- 7500 or more, anything goes! but we may want another tier
-            {super = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1}
+            {super = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1, factories = 0.1}
         }
     },
     -- everything defined here should be mobile
@@ -98,10 +98,85 @@ local allCompositions = {
     },
     -- mix of static an mobile units
     mixedCompositions = {
-        
+      -- could hardcode, but will just mix the above instead! there is benefits to it ig :O
+      --[[
+      ]]
     }
-    
-    
 }
 
 return allCompositions
+
+-- some thoughts on mixed compositions
+--[[
+local mobileCamps = {
+	{
+		ecoLight = 1,
+		turretsRiot = 0.1,
+		raiders = 2,
+		scouts = 3,
+	},
+	{
+		ecoLight = 1,
+		turretsAALight = 0.1,
+		riots = 2,
+		skirmishers = 2,
+	},
+	{
+		ecoLight = 1,
+		turretsLight = 0.1,
+		assaults = 2,
+		riots = 1,
+	},
+	{
+		ecoLight = 1,
+		turretsLight = 0.1,
+		assaults = 1,
+		gunships = 1,
+	}
+}
+
+local staticCamps = {
+	{
+		pwSupport = 1,
+		ecoLight = 0.5,
+		ecoSupport = 0.5,
+		turretsRiot = 1,
+		turretsAALight = 0.5,
+		turretsLight = 1
+	},
+	{
+		pwGreebles = 1,
+		ecoLight = 0.5,
+		ecoSupport = 0.5,
+		turretsRiot = 1,
+		turretsAALight = 0.5,
+		turretsLight = 1
+	},
+	{
+		pwSupport = 1,
+		pwGreebles = 1,
+		ecoSupport = 0.1,
+		turretsRiot = 1,
+		turretsAALight = 0.5,
+		turretsLight = 1
+	},
+	{
+		factories = 1,
+		pwGreebles = 1,
+		ecoSupport = 0.1,
+		turretsRiot = 1,
+		turretsAALight = 0.5,
+		turretsLight = 1
+	}
+}
+local largeCamp = {
+	pwSupport = 1,
+	pwGreebles = 1,
+	ecoSupport = 1,
+	pwDefence = 1,
+	turretsRiot = 1,
+	turretsAALight = 1,
+	turretsLight = 1,
+	artillery = 1,
+}
+]]
