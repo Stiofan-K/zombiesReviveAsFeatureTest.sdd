@@ -205,7 +205,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 		local unitGroup = nil
 		local budgetFraction = 1
 		local multiRandomise = true
-		local minUnits = 1
+		local minUnits = 0
 		local wreckChance = 0
 		local unitCount
 		if type(data) == "table" and data.unitGroup then
@@ -245,7 +245,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		local unitDefName = nil
 		local spawnCount = 1
 		local spawnAsWreckChance = 0 --TODO hmm chance vs ratio... I suppose we can have wrecks, and normal units defined, but a chance covers that too
-		local spacing = math.random (0,96)
+		local spacing = math.random (0,80)
 		local dropPod = true
 		local spawnPattern = "centered"
 		if type(data) == "table" and data.unitDefName then

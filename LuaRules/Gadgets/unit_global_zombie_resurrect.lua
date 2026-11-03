@@ -342,7 +342,7 @@ function gadget:GameFrame(f)
 	if f == 1 then
 		spSetTeamResource(GaiaTeamID, "ms", 500)
 		spSetTeamResource(GaiaTeamID, "es", 10500)
-		if zombieTeamStartsDead == 1 then -- TODO doing it on game start lets people plop a fac. maybe there is some other way of doing things
+		if zombieTeamStartsDead == 1 then -- TODO doing it on game may let people plop a fac, though the instant destroy call should avoid that?
 			for _, unitID in ipairs(spGetAllUnits()) do
 				if zombieAllyTeamID == Spring.GetUnitAllyTeam(unitID)then
 					Spring.CreateUnitWreck(unitID)
