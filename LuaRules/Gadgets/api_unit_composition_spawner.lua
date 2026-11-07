@@ -45,6 +45,12 @@ local function shuffle(t) --Fisher-Yates taught me this trick! (It was actually 
 		local j = math.random(i)
 		tbl[i], tbl[j] = tbl[j], tbl[i]
 	end
+	--TODO Util function doesnt seem to work?
+	--[[
+	local testShuffle = Spring.Utilities.PermuteList(t)
+	Spring.Echo(tbl)
+	Spring.Echo(testShuffle)
+	]]
 	return tbl
 end
 
@@ -80,6 +86,12 @@ local function GetCostFromUnitDefName(unitDefName)
 		unitCost = 200
 		Spring.Echo("Unit has no cost set, defaulting to 200")
 	end
+	--TODO Util function doesnt seem to work?
+	--[[
+	local testUnitCost = Spring.Utilities.GetUnitCost(nil,unitDefName)
+	Spring.Echo(unitCost)
+	Spring.Echo(testUnitCost)
+	]]
 	return unitCost
 end
 
@@ -221,6 +233,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
+		--Spring.Echo(unitGroup)
 		typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
 		if unitCount < minUnits then
 			local unitsToMin = minUnits - unitCount
@@ -304,6 +317,8 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 	return spawnedUnits, noGoZones
 end
 
+--[[
+example comp building func
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     if not budget then
         budget = 300
@@ -324,6 +339,7 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     end
     return {assaults = 1}
 end
+]]
 
 -- TODO remove or keep functions that show off how stuff works?
 local function spawningTest()

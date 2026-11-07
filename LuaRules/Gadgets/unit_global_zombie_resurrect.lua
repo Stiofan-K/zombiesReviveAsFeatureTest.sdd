@@ -217,7 +217,7 @@ local function HandleZombieRevive(featureID, reviveBudget,reviveTeamID,unitDefID
 		end
 		reviveBudget = reviveBudget - zombieCost
 		if zombieUnitDefID and reviveBudget < rerollThreshold then -- Randomises to a new unit if desired
-			Spring.Echo("rerolled at ".. reviveBudget)
+			--Spring.Echo("rerolled at ".. reviveBudget)
 			rerollThreshold = rerollThreshold - rerollThresholdStep
 			zombieUnitDefID = unitDefIDTable[math.random(1,#unitDefIDTable)]
 			zombieCost = UnitDefs[zombieUnitDefID].metalCost or 0 
