@@ -191,7 +191,7 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
   {
     key    = 'zombies_team',
     name   = 'Zombie Team',
-    desc   = "Which Allyteam the zombies respawn into. Set 0 for Gaia/neutral zombies. Set higher than teamcount to revive onto the original owner team.",
+    desc   = "Which Allyteam the zombies respawn into. Set 0 for Gaia/neutral zombies. Set 99 to revive onto the original owner team.",
     section= 'silly',
     type   = 'number',
     def=0,
@@ -1171,6 +1171,17 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		min     = 0,
 		max     = 1,
 		step    = 0.001,
+	},
+  {
+		key     = "starting_neutral_wrecks",
+		name    = "Neutral Starting extra wrecks",
+		desc    = "Fraction of Camp budget added as extra wrecks to neutral camps.",
+		section = 'mapsettings',
+    type    = 'number',
+		def     = 1,
+		min     = 0,
+		max     = 100,
+		step    = 0.1,
 	},
   {
 		key     = "reinforce_drop",

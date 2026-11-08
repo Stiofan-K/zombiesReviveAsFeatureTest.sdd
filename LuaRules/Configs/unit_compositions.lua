@@ -35,7 +35,7 @@ local allCompositions = {
             {ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1}
         },
         ludicrousCost = {-- 7500 or more, anything goes! but we may want another tier
-            {super = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1,}
+            {supers = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1,}
         }
     },
     -- everything defined here should be mobile

@@ -62,7 +62,7 @@ local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
 local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
 --eeeh seems to crowd things too much maybe... but it iiiis quite interesting
-local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_devastation) or NEUTRAL_ADDITIONAL_WRECK_RATIO
+local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks) or NEUTRAL_ADDITIONAL_WRECK_RATIO
 
 
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
