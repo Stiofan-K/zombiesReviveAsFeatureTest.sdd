@@ -29,8 +29,9 @@ local GaiaTeamID = Spring.GetGaiaTeamID()
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local allUnitGroups = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
-local UNIT_SPACING = 0
-local STRUCTURE_SPACING = 128
+local SPACING_MIN = 0
+local SPACING_MAX = 80
+local Y_OFFSET = 0
 
 --Utilities
 --------------------------------------------------------------------------------
@@ -258,7 +259,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		local unitDefName = nil
 		local spawnCount = 1
 		local spawnAsWreckChance = 0 --TODO hmm chance vs ratio... I suppose we can have wrecks, and normal units defined, but a chance covers that too
-		local spacing = math.random (0,80)
+		local spacing = math.random (SPACING_MIN,SPACING_MAX)
 		local dropPod = true
 		local spawnPattern = "centered"
 		if type(data) == "table" and data.unitDefName then
@@ -287,7 +288,7 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 				firstSearchSuccess = false
 			end
 			if searchSuccess then
-				local localY = Spring.GetGroundHeight(localX, localZ) + 20 -- The offset seems in flavour
+				local localY = Spring.GetGroundHeight(localX, localZ) + Y_OFFSET 
 				if dropPod then
 					--GG.DropUnit(unitDefName, x, y, z, facing, teamID, useSetUnitVelocity, timeToGround, fallGravity, absSpawnHeight, absBrakeHeight, dyncommID, staticDyncommLevel, dynamicCommanderOnly)
 					-- TODO mess with till its neat!
@@ -386,17 +387,19 @@ local function CompositionBuilderTest()
 	)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
 end
---[[
+
 function gadget:GameStart()
+	Y_OFFSET = 20 -- The offset seems in flavour for drops, though is silly for pregame wrecks and structures
+	--[[
 	Spring.Echo("spawningTest")
 	spawningTest()
 	Spring.Echo("compositionTest")
 	CompositionBuilderTest()
+	]]
 end
-]]
 
 GG.UnitSpawnerAddUnitLists = AddUnitLists
-GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
+--GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
 GG.UnitSpawnerGetRandomUnitsFromListForCost = GetRandomUnitsFromListForCost
 GG.UnitSpawnerGetRandomUnitsFromListByCount = GetRandomUnitsFromListByCount
 GG.UnitSpawnerCompositionBuilder = CompositionBuilder

@@ -177,6 +177,7 @@ end
 
 
 local function ValidPosition(x, z, sX, sZ, minHeight, maxHeight, noGoZones,unitDefID,direction)
+	--TODO let function without UnitDef Specified?
 	if unitDefID and direction and spTestBuildOrder(unitDefID, x, 0 ,z, direction) == 0 then
 		return false
 	end
@@ -222,15 +223,15 @@ local function GetValidSpawnPositionForUnit(unitDefID, position, allowFailure, n
 	local minHeight = Spring.GetGameRulesParam("mex_min_height")
 	if minHeight then
 		if minHeight > 0 then
-			minHeight = math.max(0, minHeight - 60)
+			minHeight = math.max(0, minHeight - 120)
 		else
-			minHeight = minHeight - 60
+			minHeight = minHeight - 120
 		end
 	end
 	
 	local maxHeight = Spring.GetGameRulesParam("mex_max_height")
 	if maxHeight then
-		maxHeight = maxHeight + 150
+		maxHeight = maxHeight + 300
 	end
 	
 	local unitDef = UnitDefs[unitDefID]

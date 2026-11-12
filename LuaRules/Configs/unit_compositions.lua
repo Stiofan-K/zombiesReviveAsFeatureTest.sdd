@@ -27,15 +27,15 @@ local allCompositions = {
             {turretsSkirm = 1, ecoLight =3, ecoSupport = 1, turretsAALight = 1, factoryPlates = 0.2,},
             {turretsSkirm = 1, turretsLight =3, ecoLight =3, ecoSupport = 1, turretsAALight = 1, factoryPlates = 0.2,},
             {turretsSkirm = 1, turretsRiot = 3,ecoLight =3, ecoSupport = 1, turretsAALight = 1,},
-            {ecoHeavy = 1, turretsHeavy = 1, ecoLight = 0, ecoSupport= 0.1, {unitGroup = "factories", budgetFraction = 3, minUnits = 1,}}
+            {ecoHeavy = 1, turretsHeavy = 1, ecoLight = 0, ecoSupport= 0.3, {unitGroup = "factories", budgetFraction = 3, minUnits = 1,}}
         },
         highCost = { -- less than 7500 cost, a relatively developed base, turrets, factories, caretakers, maybe a desolator, big AA?
             {ecoHeavy = 1,turretsHeavy = 1,turretsSkirm = 1, ecoSupport = 0.5, turretsLight =1, turretsRiot = 1, {unitGroup = "staticSupport", budgetFraction = 0, minUnits = 1,},ecoLight = 0.5,factories = 0.5},
             {ecoHeavy = 1,turretsHeavy = 1,turretsSkirm = 1, ecoSupport = 0.5, factories = 0.5,turretsLight =1, turretsRiot = 1, {unitGroup = "staticSupport", budgetFraction = 0, minUnits = 1,}},
-            {ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1}
+            {ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, ecoSupport = 0.5, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1}
         },
         ludicrousCost = {-- 7500 or more, anything goes! but we may want another tier
-            {supers = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.1,}
+            {supers = 1, turretsHeavy = 1, ecoHeavy = 1, staticStrategic = 1, turretsRiot =1, turretsSkirm =1,ecoLight = 0.5, factoryPlates = 0.05, factories = 0.1, ecoSupport = 0.3,}
         }
     },
     -- everything defined here should be mobile
