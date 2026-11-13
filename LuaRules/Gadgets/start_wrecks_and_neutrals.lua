@@ -89,6 +89,22 @@ local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks) o
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function GetRandomTeamIDFromAllyTeam(allyTeamID) -- function since the team zombies revive onto could be changed mid game.
+	local allyTeamList = Spring.GetTeamList(allyTeamID) or GaiaAllyTeamID
+	local teamMateCount = 0
+	local teamToSpawnOn
+	if allyTeamID == GaiaAllyTeamID then
+		return GaiaTeamID
+	end
+	
+	for _,_ in ipairs(allyTeamList) do
+		teamMateCount = teamMateCount + 1 
+	end
+	teamToSpawnOn = allyTeamList[math.random(1,teamMateCount)] or nil
+	return teamToSpawnOn
+end
+
+
 local function CheckStartboxOverlap(x,z)
 	local overlaps = false
 	for i = 0, maxStartboxcount, 1 do
@@ -169,6 +185,7 @@ end
 
 local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecksRatio)
 	local unitIDs
+	local teamID = GaiaTeamID
 	local wreckBudget = 0
 	if additionWrecksRatio ~= 0 then
 		wreckBudget = unitBudget * additionWrecksRatio * WRECK_TO_UNIT_COST_MULT
@@ -206,9 +223,11 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 		--Spring.Echo("Start neutrals")
 		--Spring.Utilities.TableEcho(unitComposition)
 		
-		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,neutralAllyTeamID,localNoGoZones)
+		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
+		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,localNoGoZones)
 		Spring.MarkerAddPoint(x, 0, z, "Reports of Remnants") -- important as they arent visible globaly
-		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,neutralAllyTeamID,localNoGoZones)
+		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
+		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
 		Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 	end
 	--uneven number results in big map center camp :o 
@@ -223,7 +242,8 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 			end
 			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
 		end
-		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,neutralAllyTeamID,localNoGoZones)
+		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
+		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
 		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 	end
 end
