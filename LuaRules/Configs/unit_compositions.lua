@@ -7,15 +7,15 @@ local allCompositions = {
     staticCompositions = {
         tinyCost = { -- less than 500 cost, a few light defences and eco structures
             {turretsLight = 1, ecoLight = 1},
-            {turretsRiot = 1,turretsLight = 0, ecoLight = 0.5,},
-            {factoryPlates = 1, turretsLight =1,},
+            {turretsRiot = 1,turretsLight = 0, ecoLight = 0.5},
+            {factoryPlates = 1, turretsLight =1},
             {factoryPlates = 1, turretsLight =1, ecoLight = 0.5},
             {turretsLight =1, ecoLight = 0.5, ecoSupport = 0.5},
         },
         lowCost = { -- less than 1000 cost, riot turrets, maybe a factory, no skirmsher turrets yet, light aa
             {turretsRiot = 1,turretsLight = 0, ecoLight = 1,},
             {factoryPlates = 1, turretsLight =3, ecoLight = 3, ecoSupport = 1},
-            {turretsRiot = 1,turretsLight = 3, factoryPlates = 1,},
+            {turretsRiot = 1,turretsLight = 3, factoryPlates = 1},
             {turretsRiot = 1,turretsLight = 3, ecoLight = 2, ecoSupport = 1},
             {turretsRiot = 1,turretsLight = 3, ecoLight = 2, turretsAALight = 1},
             {factoryPlates = 1,turretsLight = 3, ecoLight = 2, turretsAALight = 1}

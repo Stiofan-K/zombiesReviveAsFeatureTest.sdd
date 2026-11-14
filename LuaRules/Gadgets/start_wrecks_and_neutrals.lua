@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 3,
+		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -48,8 +48,7 @@ local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
 local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
 local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
-local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks) or NEUTRAL_ADDITIONAL_WRECK_RATIO
-
+local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks_ratio) or NEUTRAL_ADDITIONAL_WRECK_RATIO
 
 local GaiaTeamID     = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
@@ -57,6 +56,7 @@ local maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n") or 2 -- TODO
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local WRECK_TO_UNIT_COST_MULT = 2.5 -- mult to get from wreck -> unit cost
 local WATER_DAMAGE = (Game.waterDamage > 0)
+
 local initalAllianceCount = -1 --subtract gaia
 for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 	local teamlist = Spring.GetTeamList(allyTeamID)
@@ -66,7 +66,16 @@ for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 end
 local neutralAllyTeamID = GaiaAllyTeamID
 local startingNeutralsTeamInput = tonumber(modOptions.starting_neutrals_team) or 0
-if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput < initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
+
+if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput <= initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
+	neutralAllyTeamID = startingNeutralsTeamInput -1 -- -1 for offset 
+	if neutralAllyTeamID == GaiaAllyTeamID then --TODO there is likely a better solution, it seems sometimes Gaia is not the last team in the list
+		neutralAllyTeamID = neutralAllyTeamID + 1
+	end
+else -- anything else translates to gaia neutrals
+	neutralAllyTeamID = GaiaAllyTeamID
+end
+if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput <= initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
 	neutralAllyTeamID = startingNeutralsTeamInput -1 -- -1 for offset 
 	if neutralAllyTeamID == GaiaAllyTeamID then --TODO there is likely a better solution, it seems sometimes Gaia is not the last team in the list
 		neutralAllyTeamID = neutralAllyTeamID + 1
@@ -336,8 +345,6 @@ local function GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
 	-- though this scales the neutrals nicely Imo
 	local campValue = mapUnitArea * autoNeutralsMapToValue + AUTO_MAP_VALUE_OFFSET
 	
-	Spring.Echo("CampCount: "..campCount)
-	Spring.Echo("CampValue: "..campValue)
 	return campCount, campValue
 end
 
@@ -388,5 +395,8 @@ function gadget:GameStart()
 	
 	local testCount, testValue = GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
 	Spring.Echo("CampCount = "..testCount)
-	Spring.Echo("CampCount = "..testValue)
+	Spring.Echo("CampStaticValue = "..testValue-testValue*startingNeutralMobileRatio)
+	Spring.Echo("CampMobileValue = "..testValue*startingNeutralMobileRatio)
+	
+
 end

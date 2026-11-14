@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 1, -- Before terraforming gadget (I dont know when would be appropriate)
+		layer     = 0, -- Before terraforming gadget (I dont know when would be appropriate)
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -37,28 +37,6 @@ local Y_OFFSET = 0
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function shuffle(t) --Fisher-Yates taught me this trick! (It was actually Github)
-	local tbl = {}
-	if not t then
-		Spring.Echo("Likely Type in unitgroupname")
-		return {[[hoverdepthcharge]],[[planelightscout]]}
-	end
-	for i = 1, #t do
-		tbl[i] = t[i]
-	end
-	for i = #tbl, 2, -1 do
-		local j = math.random(i)
-		tbl[i], tbl[j] = tbl[j], tbl[i]
-	end
-	--TODO Util function doesnt seem to work?
-	--[[
-	local testShuffle = Spring.Utilities.PermuteList(t)
-	Spring.Echo(tbl)
-	Spring.Echo(testShuffle)
-	]]
-	return tbl
-end
-
 -- adds 2 Unit Lists together! accounts for different "spellings"
 local function AddUnitLists(tableList)
 	local returnList = {}
@@ -77,26 +55,6 @@ local function AddUnitLists(tableList)
 		end
 	end
 	return returnList
-end
-
--- failsafe for 0 cost units
-local function GetCostFromUnitDefName(unitDefName)
-	--Spring.Echo(unitDefName)
-	local unitCost = UnitDefNames[unitDefName].metalCost or 0
-	if unitCost or unitCost <= 0 then
-		unitCost = UnitDefNames[unitDefName].buildTime
-	end
-	if not unitCost or unitCost <= 0 then
-		unitCost = 200
-		Spring.Echo("Unit has no cost set, defaulting to 200")
-	end
-	--TODO Util function doesnt seem to work?
-	--[[
-	local testUnitCost = Spring.Utilities.GetUnitCost(nil,unitDefName)
-	Spring.Echo(unitCost)
-	Spring.Echo(testUnitCost)
-	]]
-	return unitCost
 end
 
 --------------------------------------------------------------------------------
@@ -134,7 +92,12 @@ local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomi
 	local returnUnitArray = {}
 	local excess = 0
 	local unitCount = 0
-	local shuffledUnitDefNameList = shuffle(unitDefNameList)
+	local shuffledUnitDefNameList = unitDefNameList
+	if not shuffledUnitDefNameList then
+		--There is some typo I cant seem to find that will run into issues on nil here
+		shuffledUnitDefNameList = {[[amphimpulse]],[[amphraid]],[[hoverdepthcharge]],[[hoverraid]],[[amphriot]],}
+	end
+	Spring.Utilities.PermuteList(shuffledUnitDefNameList)
 	local unitDefName
 	local unitCost
 	local loopWithHit = true
@@ -142,7 +105,7 @@ local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomi
 		loopWithHit = false
 		for i = 1,  #shuffledUnitDefNameList, 1 do --we walk a shuffled list of all options instead of randomising to try and spend all budget
 			unitDefName = shuffledUnitDefNameList[i]
-			unitCost = GetCostFromUnitDefName(unitDefName)
+			unitCost = Spring.Utilities.GetUnitCost(nil,UnitDefNames[unitDefName].id)--GetCostFromUnitDefName(unitDefName)
 			if not multiRandomise and unitCost <= budget then --we found a shuffled unit that fits and spend all budget
 				unitCount = math.floor(budget/unitCost)
 				returnUnitArray[1] = {unitDefName = unitDefName, unitCount = unitCount}
@@ -164,7 +127,7 @@ local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomi
 				unitCount = unitCount + 1
 			end
 		end
-		shuffledUnitDefNameList = shuffle(shuffledUnitDefNameList)
+		Spring.Utilities.PermuteList(shuffledUnitDefNameList)
 	end
 	--[[Spring.Echo(unitDefCountList)
 	for key, value in pairs(unitDefCountList) do
@@ -239,15 +202,8 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 		end
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
 		Spring.Echo(unitGroup)
-		if not UnitDefNames[unitGroup] then
-			typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
-			if unitCount < minUnits then
-				local unitsToMin = minUnits - unitCount
-				local minUnitComposition = GetRandomUnitsFromTypeListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
-				typeComposition = AddUnitLists({minUnitComposition,typeComposition})
-			end
-		else
-			local count = math.floor(budgetToSpend/GetCostFromUnitDefName(unitGroup))
+		if UnitDefNames[unitGroup] then
+			local count = math.floor(budgetToSpend/Spring.Utilities.GetUnitCost(nil,UnitDefNames[unitGroup].id))
 			if count < minUnits then
 				count = minUnits
 			end
@@ -257,6 +213,13 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 				typeComposition = {}
 			end
 			--Spring.Utilities.TableEcho(typeComposition)
+		else
+			typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
+			if unitCount < minUnits then
+				local unitsToMin = minUnits - unitCount
+				local minUnitComposition = GetRandomUnitsFromTypeListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
+				typeComposition = AddUnitLists({minUnitComposition,typeComposition})
+			end
 		end
 		--Spring.Utilities.TableEcho(typeComposition)
 		for index, value in ipairs(typeComposition) do
