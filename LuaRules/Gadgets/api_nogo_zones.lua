@@ -223,9 +223,9 @@ local function GetValidSpawnPositionForUnit(unitDefID, position, allowFailure, n
 	local minHeight = Spring.GetGameRulesParam("mex_min_height")
 	if minHeight then
 		if minHeight > 0 then
-			minHeight = math.max(0, minHeight - 120)
+			minHeight = math.max(0, minHeight - 60)
 		else
-			minHeight = minHeight - 120
+			minHeight = minHeight - 60
 		end
 	end
 	

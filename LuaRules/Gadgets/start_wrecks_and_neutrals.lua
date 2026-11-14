@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = 3,
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -24,7 +24,7 @@ end
 
 
 local MAP_AREA_TO_CAMP_RATIO = 45
-local MAP_AREA_TO_VALUE_RATIO = 12
+local MAP_AREA_TO_VALUE_MULT = 12
 local AUTO_MAP_VALUE_OFFSET = -200
 local AUTO_WRECK_COUNT_MULT = 1.5
 local AUTO_WRECK_VALUE_MULT = 0.7
@@ -36,14 +36,27 @@ local CENTER_CAMP_MULT = 3
 
 local WeWantSpice = true
 
-
 local modOptions = Spring.GetModOptions()
+local autoNeutrals = tonumber(modOptions.starting_auto_neutrals) or 0
+local autoWrecks = tonumber(modOptions.starting_auto_wrecks) or 0
+local autoNeutralsMapToCount =  tonumber(modOptions.starting_auto_neutrals_map_to_count) or MAP_AREA_TO_CAMP_RATIO
+local autoNeutralsMapToValue =  tonumber(modOptions.starting_auto_neutrals_map_to_value) or MAP_AREA_TO_VALUE_MULT
+
+local startingWreckCount = tonumber(modOptions.starting_wrecks_count) or 0
+local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
+
+local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
+local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
+local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
+local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks) or NEUTRAL_ADDITIONAL_WRECK_RATIO
+
+
 local GaiaTeamID     = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
 local maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n") or 2 -- TODO this seems to have some issue. Startboxjutsu is not good enough
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local WRECK_TO_UNIT_COST_MULT = 2.5 -- mult to get from wreck -> unit cost
-
+local WATER_DAMAGE = (Game.waterDamage > 0)
 local initalAllianceCount = -1 --subtract gaia
 for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 	local teamlist = Spring.GetTeamList(allyTeamID)
@@ -51,7 +64,6 @@ for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		initalAllianceCount = initalAllianceCount +1
 	end
 end
-
 local neutralAllyTeamID = GaiaAllyTeamID
 local startingNeutralsTeamInput = tonumber(modOptions.starting_neutrals_team) or 0
 if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput < initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
@@ -70,26 +82,17 @@ local mixedCompositions = allCompositions.mixedCompositions
 local mexAndGeoNoGoZones = GG.NoGoZonesGetMexAndGeoNoGoZones()
 local localNoGoZones = mexAndGeoNoGoZones
 
-local autoNeutrals = tonumber(modOptions.starting_auto_neutrals) or 0
-local autoWrecks = tonumber(modOptions.starting_auto_wrecks) or 0
-local autoNeutralsMapToCount =  tonumber(modOptions.starting_auto_neutrals_map_to_count) or MAP_AREA_TO_CAMP_RATIO
-local autoNeutralsMapToValue =  tonumber(modOptions.starting_auto_neutrals_map_to_value) or MAP_AREA_TO_VALUE_RATIO
-
-local startingWreckCount = tonumber(modOptions.starting_wrecks_count) or 0
-local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
-
-local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
-local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
-local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
---eeeh seems to crowd things too much maybe... but it iiiis quite interesting
-local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks) or NEUTRAL_ADDITIONAL_WRECK_RATIO
-
+local MAP_SIZE_UNIT = 512 --Elmo to lobby mapsize
+local CIRCLE_CHECK_COUNT = 15
+local CIRCLE_CHECK_RADIUS = 700
+local AREA_CHECK_ID = UnitDefNames["energypylon"].id -- small profile and water buildable!
+local PLACEMENT_CHECK_ID = UnitDefNames["staticrearm"].id -- a lil bigger, but should be placable often
 
 --Utility
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local function GetRandomTeamIDFromAllyTeam(allyTeamID) -- function since the team zombies revive onto could be changed mid game.
+-- TODO would this be a useful util function? maybe it already exists :o
+local function GetRandomTeamIDFromAllyTeam(allyTeamID)
 	local allyTeamList = Spring.GetTeamList(allyTeamID) or GaiaAllyTeamID
 	local teamMateCount = 0
 	local teamToSpawnOn
@@ -104,34 +107,59 @@ local function GetRandomTeamIDFromAllyTeam(allyTeamID) -- function since the tea
 	return teamToSpawnOn
 end
 
-
+-- TODO would this be a useful util function? maybe it already exists :o
 local function CheckStartboxOverlap(x,z)
-	local overlaps = false
 	for i = 0, maxStartboxcount, 1 do
 		if GG.CheckStartbox(i,x,z) then
-			--Spring.MarkerAddPoint(x, 0, z, "Overlap?")
-			overlaps = true
+			--Spring.MarkerAddPoint(x, 0, z, "Overlap detected, rerolling")
+			return true
 		end
 	end
-	return overlaps
+	return false
 end
 
-local function shuffle(t) --Fisher-Yates taught me this trick! (It was actually Github)
-	local tbl = {}
-	for i = 1, #t do
-		tbl[i] = t[i]
+-- TODO would this be a useful util function? maybe it already exists :o
+local function CheckLavaAndStartbox(x,z,radius)
+	local height = Spring.GetGroundHeight(x, z)
+	if (WATER_DAMAGE and height <= 0) or Spring.TestBuildOrder(AREA_CHECK_ID, x, 0 ,z, 0) == 0 then
+		return true
 	end
-	for i = #tbl, 2, -1 do
-		local j = math.random(i)
-		tbl[i], tbl[j] = tbl[j], tbl[i]
+	if CheckStartboxOverlap(x,z) then
+		return true
 	end
-	--TODO Util function doesnt seem to work?
-	--[[
-	local testShuffle = Spring.Utilities.PermuteList(t)
-	Spring.Echo(tbl)
-	Spring.Echo(testShuffle)
-	]]
-	return tbl
+	local rx,rz
+	local degreeIncrement = 360 / CIRCLE_CHECK_COUNT
+	local currentAngle = 0
+	while currentAngle <= 360 do
+		rx = x + radius * math.cos(currentAngle)
+		rz = z - radius * math.sin(currentAngle)
+		--Spring.MarkerAddPoint(rx, 0, rz, "Circle check")
+		if CheckStartboxOverlap(rx,rz) then
+			return true
+		end
+		currentAngle = currentAngle + degreeIncrement
+	end 
+	return false
+end
+
+-- TODO would this be a useful util function?
+local function GuesstimateUsableMapArea(mapSizeX,mapSizeZ)
+	local mapUnitsX = mapSizeX/MAP_SIZE_UNIT
+	local mapUnitsZ = mapSizeZ/MAP_SIZE_UNIT
+	local usableArea = mapUnitsX * mapUnitsZ
+	
+	for xMapUnit = 0.5, mapUnitsX, 1 do
+		local x = xMapUnit * MAP_SIZE_UNIT
+		for zMapUnit = 0.5, mapUnitsZ, 1 do
+			local z = zMapUnit * MAP_SIZE_UNIT
+			local height = Spring.GetGroundHeight(x, z)
+			if (WATER_DAMAGE and height <= 0) or Spring.TestBuildOrder(AREA_CHECK_ID, x, 0 ,z, 0) == 0 then
+				--Spring.MarkerAddPoint(x, 0, z, "can't build here mylord")
+				usableArea = usableArea -1
+			end
+		end
+	end
+	return usableArea
 end
 
 --------------------------------------------------------------------------------
@@ -148,7 +176,7 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
         return compositionType.tinyCost[math.random(#compositionType.tinyCost)]
 	elseif (budget < 1500) then
         return compositionType.lowCost[math.random(#compositionType.lowCost)]
-    elseif (budget < 2000) then
+    elseif (budget < 3000) then
         return compositionType.mediumCost[math.random(#compositionType.mediumCost)]
     elseif (budget < 7500) then
         return compositionType.highCost[math.random(#compositionType.highCost)]
@@ -192,17 +220,18 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 	end
 	
 	for i = 1, campCount/2, 1 do
-		--TODO my map and startbox jutsu is not as strong, but also not too integral to show off the underlying stuff. small startboxes get close spawns
 		--we mirror for an attempt at fairness.
 		local mapOffsetX, mapOffsetZ = NEUTRAL_EDGE_OFFSET, NEUTRAL_EDGE_OFFSET
 		local x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
-		local x2,z2 = mapSizeX-x,mapSizeZ-z
+		local x2,z2
 		local iteration = 0
-		local dummyUnitDefID = UnitDefNames["energywind"].id
-		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(dummyUnitDefID,{x,z},false,localNoGoZones)
-		while CheckStartboxOverlap(x,z) and CheckStartboxOverlap(x2,z2) do
+		
+		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
+		x2,z2 = mapSizeX-x,mapSizeZ-z
+		-- My startbox jutsu has improved 
+		while CheckLavaAndStartbox(x,z,CIRCLE_CHECK_RADIUS) or CheckLavaAndStartbox(x2,z2,CIRCLE_CHECK_RADIUS)  do
 			x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
-			x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(dummyUnitDefID,{x,z},false,localNoGoZones)
+			x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
 			x2,z2 = mapSizeX-x,mapSizeZ-z
 			if iteration > 10 then
 				x,z = mapSizeX/2,mapSizeZ/2
@@ -216,7 +245,7 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 			local wreckComposition = SetupUnitComposition(wreckBudget,mobileRatio)
 			for index, value in ipairs(wreckComposition) do
 				value.wreckChance = 1
-				--value.spacing = math.random(0,64)
+				value.spacing = math.random(32,64)
 			end
 			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
 		end
@@ -238,7 +267,7 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,mobileRatio)
 			for index, value in ipairs(wreckComposition) do
 				value.wreckChance = 1
-				--value.spacing = math.random(0,64)
+				value.spacing = math.random(32,64)
 			end
 			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
 		end
@@ -284,10 +313,10 @@ end
 
 --it will be hard to do anything definitive without some startbox jutsu or map and mex analysis
 local function GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
-	-- 512 is the size of a mapsize "unit"
-	local mapUnitsX = mapSizeX/512
-	local mapUnitsY = mapSizeZ/512
-	local mapUnitArea = mapUnitsX * mapUnitsY
+
+	--not all map area is useable!
+	local mapUnitArea = GuesstimateUsableMapArea(mapSizeX,mapSizeZ)
+
 	--LETS START GUESSTIMATING!!!
 	--get arbitrary values from mapsize!
 	
@@ -307,6 +336,8 @@ local function GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
 	-- though this scales the neutrals nicely Imo
 	local campValue = mapUnitArea * autoNeutralsMapToValue + AUTO_MAP_VALUE_OFFSET
 	
+	Spring.Echo("CampCount: "..campCount)
+	Spring.Echo("CampValue: "..campValue)
 	return campCount, campValue
 end
 
@@ -323,7 +354,7 @@ local function SpawnNeutralsAndWrecks()
 				if 0.5 > math.random() then
 					neutralCount = neutralCount + 1 -- an extra camp!
 				else
-					neutralValue = neutralValue + math.ceil(neutralValue*2/neutralCount) -- 2 camps of value spread between all
+					neutralValue = neutralValue + math.ceil(neutralValue*1/neutralCount) -- 1 camp of value spread between all
 				end
 			end
 		end
@@ -333,7 +364,7 @@ local function SpawnNeutralsAndWrecks()
 				if 0.5 > math.random() then
 					wreckCount = wreckCount + 1 -- an extra camp!
 				else
-					wreckValue = wreckValue + math.ceil(wreckValue*2/wreckCount) -- 2 camps of value spread between all
+					wreckValue = wreckValue + math.ceil(wreckValue*1/wreckCount) -- 1 camp of value spread between all
 				end
 			end
 		end
@@ -355,5 +386,7 @@ end
 
 function gadget:GameStart()
 	
-
+	local testCount, testValue = GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
+	Spring.Echo("CampCount = "..testCount)
+	Spring.Echo("CampCount = "..testValue)
 end

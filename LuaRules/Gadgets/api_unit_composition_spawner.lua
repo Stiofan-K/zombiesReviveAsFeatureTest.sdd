@@ -39,6 +39,10 @@ local Y_OFFSET = 0
 
 local function shuffle(t) --Fisher-Yates taught me this trick! (It was actually Github)
 	local tbl = {}
+	if not t then
+		Spring.Echo("Likely Type in unitgroupname")
+		return {[[hoverdepthcharge]],[[planelightscout]]}
+	end
 	for i = 1, #t do
 		tbl[i] = t[i]
 	end
@@ -68,8 +72,7 @@ local function AddUnitLists(tableList)
 				returnList[#returnList +1] = {unitDefName = i, unitCount = v}
 			else
 				Spring.Echo("Input of AddUnitLists unit_composition_spawner has error")
-				Spring.Echo(i)
-				Spring.Echo(v)
+				Spring.Utilities.TableEcho(table)
 			end
 		end
 	end
@@ -99,7 +102,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function GetRandomUnitsFromListByCount(targetCount,unitDefNameList,multiRandomise)
+local function GetRandomUnitsFromTypeListByCount(targetCount,unitDefNameList,multiRandomise)
 	local unitDefName = unitDefNameList[math.random(#unitDefNameList)]
 	if not multiRandomise then
 		local returnUnitArray = {} 
@@ -182,7 +185,8 @@ unitTypeAndRatio should be "scouts"= 2 where 2 is the fraction of the budget all
 A more complex setup would be
 {
 	{unitGroup = scouts, budgetFraction = 2, minUnits = 1, multiRandomise = true, wreckChance = 0.5},
-	{unitGroup = skirmishers, budgetFraction = 1, minUnits =2, multiRandomise = false}
+	{unitGroup = skirmishers, budgetFraction = 1, minUnits =2, multiRandomise = false},
+	{unitGroup = cloakriot, budgetFraction 0.2, minUnits = 5}
 }
 returns something akin to 
 { unitDefName = "vehriot",count = 2,wreckChance = 0.5,spacing = 64}
@@ -234,13 +238,27 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
-		--Spring.Echo(unitGroup)
-		typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
-		if unitCount < minUnits then
-			local unitsToMin = minUnits - unitCount
-			local minUnitComposition = GetRandomUnitsFromListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
-			typeComposition = AddUnitLists({minUnitComposition,typeComposition})
+		Spring.Echo(unitGroup)
+		if not UnitDefNames[unitGroup] then
+			typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
+			if unitCount < minUnits then
+				local unitsToMin = minUnits - unitCount
+				local minUnitComposition = GetRandomUnitsFromTypeListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
+				typeComposition = AddUnitLists({minUnitComposition,typeComposition})
+			end
+		else
+			local count = math.floor(budgetToSpend/GetCostFromUnitDefName(unitGroup))
+			if count < minUnits then
+				count = minUnits
+			end
+			if count > 0 then
+				typeComposition = {{unitDefName = unitGroup, unitCount = count}}
+			else
+				typeComposition = {}
+			end
+			--Spring.Utilities.TableEcho(typeComposition)
 		end
+		--Spring.Utilities.TableEcho(typeComposition)
 		for index, value in ipairs(typeComposition) do
 			value.wreckChance = wreckChance
 		end
@@ -377,12 +395,13 @@ end
 
 local function CompositionBuilderTest()
 	local spawnList = GG.UnitSpawnerCompositionBuilder(
-	1000,
+	2000,
 		{
 			{unitGroup = "pwGreebles", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
 			assaults = 1,
 			skirmishers = 1,
-			turretsLight = 1
+			turretsLight = 1,
+			energypylon = 1
 		}
 	)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
@@ -390,17 +409,17 @@ end
 
 function gadget:GameStart()
 	Y_OFFSET = 20 -- The offset seems in flavour for drops, though is silly for pregame wrecks and structures
-	--[[
-	Spring.Echo("spawningTest")
-	spawningTest()
-	Spring.Echo("compositionTest")
-	CompositionBuilderTest()
-	]]
+	
+	--Spring.Echo("spawningTest")
+	--spawningTest()
+	--Spring.Echo("compositionTest")
+	--CompositionBuilderTest()
+	
 end
 
 GG.UnitSpawnerAddUnitLists = AddUnitLists
 --GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
 GG.UnitSpawnerGetRandomUnitsFromListForCost = GetRandomUnitsFromListForCost
-GG.UnitSpawnerGetRandomUnitsFromListByCount = GetRandomUnitsFromListByCount
+GG.UnitSpawnerGetRandomUnitsFromTypeListByCount = GetRandomUnitsFromTypeListByCount
 GG.UnitSpawnerCompositionBuilder = CompositionBuilder
 GG.UnitSpawnerQueueListSpawn = QueueListSpawn
