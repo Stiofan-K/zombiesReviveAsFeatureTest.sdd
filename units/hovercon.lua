@@ -21,6 +21,7 @@ return { hovercon = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","constructor"},
     modelradius    = [[25]],
     selection_scale = 1.2,
     turnatfullspeed_hover = [[1]],

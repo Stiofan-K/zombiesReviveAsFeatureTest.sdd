@@ -19,6 +19,7 @@ return { gunshipraid = {
   cruiseAltitude         = 100,
 
   customParams           = {
+    unit_class_tags = {"baseGame","raider"},
     airstrafecontrol = [[1]],
     modelradius    = [[18]],
     selection_scale = 1.2,

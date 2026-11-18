@@ -12,6 +12,7 @@ return { chickenr = {
   category            = [[LAND]],
 
   customParams        = {
+    unit_class_tags = {"chicken","artillery"},
     outline_x = 85,
     outline_y = 85,
     outline_yoff = 20,

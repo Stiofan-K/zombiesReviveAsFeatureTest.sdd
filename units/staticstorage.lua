@@ -30,6 +30,7 @@ return { staticstorage = {
   yardMap                       = [[ooo ooo ooo]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","ecoSupport"},
     modelradius    = [[30]],
     removewait     = 1,
     removestop     = 1,

@@ -12,6 +12,7 @@ return { hoverminer = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"extraUnits","support"},
     modelradius    = [[25]],
     turnatfullspeed_hover = [[1]],
   },
@@ -24,7 +25,7 @@ return { hoverminer = {
   leaveTracks         = true,
   maxSlope            = 18,
   maxWaterDepth       = 22,
-  metalCost           = 200,
+  metalCost           = 300,
   movementClass       = [[HOVER3]],
   moveState           = 0,
   noAutoFire          = false,
@@ -59,10 +60,12 @@ return { hoverminer = {
 
     MINE = {
       name                    = [[Light Mine]],
-      accuracy                = 1600,
+      accuracy                = 0,
       avoidFriendly           = false,
       avoidNeutral            = false,
-      burnblow                = true,
+      burnblow                = false,
+      burst                   = 3,
+      burstRate               = 0.1,
       collideEnemy            = false,
       collideFriendly         = false,
       collideNeutral          = false,
@@ -70,7 +73,7 @@ return { hoverminer = {
       craterMult              = 0,
 
       customParams            = {
-        spawns_name = "wolverine_mine",
+        spawns_name = "wolverine_mine",--TODO implement unique mine!
         spawns_expire = 60,
       },
 
@@ -84,16 +87,17 @@ return { hoverminer = {
       impulseFactor           = 0,
       impactOnly              = true,
       interceptedByShieldType = 0,
-      --model                   = [[logmine.s3o]],
+      model                   = [[logmine.s3o]],
       noSelfDamage            = true,
       range                   = 300,
       reloadtime              = 5,
       size                    = 0,
-      soundHit                = [[misc/teleport]],
+      sprayangle              = 3600,
+      --soundHit                = [[misc/teleport2]],
       --soundStart              = [[misc/teleport2]],
       turret                  = true,
       weaponType              = [[Cannon]],
-      weaponVelocity          = 2000,
+      weaponVelocity          = 200,
     },
 
   },

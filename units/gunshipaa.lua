@@ -21,6 +21,7 @@ return { gunshipaa = {
   cruiseAltitude         = 110,
 
   customParams           = {
+    unit_class_tags = {"baseGame","aerialAA"},
     bait_level_default = 0,
     modelradius    = [[18]],
     midposoffset   = [[0 15 0]],

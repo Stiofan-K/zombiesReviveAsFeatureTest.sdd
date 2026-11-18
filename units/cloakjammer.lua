@@ -10,6 +10,7 @@ return { cloakjammer = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","support","jammer"},
 
     morphto = [[staticjammer]],
     morphtime = 30,

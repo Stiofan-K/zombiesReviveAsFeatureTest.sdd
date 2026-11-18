@@ -29,6 +29,7 @@ return { staticsonar = {
   yardMap           = [[oo oo]],
   
   customParams                  = {
+    unit_class_tags = {"extraUnits","staticSupport"},
     modelradius    = [[16]],
     removewait     = 1,
     removestop     = 1,

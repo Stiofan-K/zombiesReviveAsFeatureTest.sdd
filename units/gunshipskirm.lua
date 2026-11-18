@@ -17,6 +17,7 @@ return { gunshipskirm = {
   cruiseAltitude         = 140,
 
   customParams           = {
+    unit_class_tags = {"baseGame","gunship"},
     bait_level_default = 0,
     airstrafecontrol = [[1]],
     modelradius    = [[16]],

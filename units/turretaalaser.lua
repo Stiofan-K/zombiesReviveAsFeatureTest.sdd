@@ -14,6 +14,7 @@ return { turretaalaser = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","turretAALight"},
     aim_lookahead      = 20,
     bait_level_target  = 2,
     bait_level_target_armor = 1,

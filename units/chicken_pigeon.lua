@@ -17,6 +17,7 @@ return { chicken_pigeon = {
   cruiseAltitude      = 200,
 
   customParams        = {
+    unit_class_tags = {"chicken","bomberLight"},
   },
 
   explodeAs           = [[NOWEAPON]],

@@ -12,6 +12,7 @@ return { chicken_spidermonkey = {
   category            = [[LAND]],
 
   customParams        = {
+    unit_class_tags = {"chicken","support"},
     outline_x = 145,
     outline_y = 145,
     outline_yoff = 30,

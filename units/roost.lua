@@ -7,6 +7,7 @@ return { roost = {
   category          = [[SINK]],
 
   customParams      = {
+    unit_class_tags = {"chicken","turretLight"},
   },
   
   energyMake        = 0,

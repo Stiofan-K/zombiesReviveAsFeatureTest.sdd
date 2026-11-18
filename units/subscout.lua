@@ -15,6 +15,7 @@ return { subscout = {
   collisionVolumeType    = [[cylZ]],
 
   customParams          = {
+    unit_class_tags = {"extraUnits","scout","antiSub"},
     fireproof = [[1]],
     turnatfullspeed = [[1]],
   },

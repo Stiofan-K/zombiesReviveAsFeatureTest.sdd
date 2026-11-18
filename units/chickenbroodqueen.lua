@@ -39,6 +39,7 @@ return { chickenbroodqueen = {
   category            = [[LAND]],
 
   customParams        = {
+    unit_class_tags = {"extraChickens","constructor"},
     outline_x = 185,
     outline_y = 185,
     outline_yoff = 27.5,

@@ -15,6 +15,7 @@ return { shieldassault = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","assault"},
     aim_lookahead      = 120,
     bait_level_default = 0,
     shield_emit_height = 17,

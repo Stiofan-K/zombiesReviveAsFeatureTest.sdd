@@ -1,6 +1,53 @@
 -- units grouped and defined for the compositionbuilder,
 -- bundled in a config file for ease of access and cross gadget sharing
 
+
+--LETS THINK!!!
+
+-- We can get amph and hover movetypes from their well, movetype, so dont necessarily need a category?
+-- there is the category category, but I dont really want to do string befuddling or try to use a normal param
+    
+-- [[AKBOT2]],[[AKBOT3]],[[AKBOT4]] are amph bot movetypes
+-- 
+-- [[BOAT2]],[[BOAT3]],[[BOAT4]],[[BOAT5]], --boats!
+
+-- [[ATKBOT3]] spiders that can water? mostly chickens
+
+
+-- stealth, jam and cloak compound into the stealth groupings NOPE CANT DO THAT CUZ ATHENAAA AAAAAAAUGH... unless?
+-- Group by combat roles, and athena, conj and such are fine! yay!
+
+-- I suppose I could read drones by the "is drone" thing huh... but I think I would like it hardcoded anyhow?
+
+-- geos are uncategories, though tbh a variant that doesnt care about geo spots sounds good! pw buildings ig
+
+-- factoies could be gotten via factory tab or something else, but it seems safest not to assume it would be the same always!
+--GUH what factories are water placeable how does it knooow?!??!??!?!?!???!!!!
+
+-- get plates by factories?!?!?
+
+-- no need for sea strider category if we can differentiate via movetypes
+
+-- shield category may be doable with just shields mabi
+
+-- gunships are weird o,o" I will likely need help with it
+
+-- Dampner mine could be unique?
+
+-- Morningstar and Punisher sort of double up...
+
+-- Anarchid needs its legs fixed
+
+-- Dozer and slicer have potential TM but are not ready really
+
+-- Lancelet needs some stuff but then could be good
+
+-- Check sunlance!
+
+--GUH I'm gonna be implementing a sql esque query thing guuuuuuuuuuuuuuuuh
+
+
+
 --TODO make into Spring util function!!
 local function Union2 (tables)
     local returnTable = {}
@@ -161,7 +208,7 @@ local allGroups = {
     stridersHeavy = {
         [[nebula]], --fuck it, nebula
         [[striderbantha]],
-        --[[striderdetriment]] --TODO figure out where to put this :0
+        [[striderdetriment]] --TODO figure out where to put this :0
     },
     
     -- Get ships from shipfac 

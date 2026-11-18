@@ -32,6 +32,7 @@ return { factoryshield = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","factory"},
     ploppable = 1,
     sortName            = [[1]],
     midposoffset        = [[0 0 -24]],

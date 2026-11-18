@@ -8,6 +8,7 @@ return { shipcon = {
   builder                = true,
 
   buildoptions           = {
+    unit_class_tags = {"baseGame","constructor"},
   },
 
   buildPic               = [[shipcon.png]],

@@ -13,6 +13,7 @@ return { striderdante = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","striderMedium"},
     aim_lookahead      = 120,
     decloak_footprint  = 5,
     manualfire_desc    = [[Fire Special Weapon: Fire a napalm rocket salvo.]],

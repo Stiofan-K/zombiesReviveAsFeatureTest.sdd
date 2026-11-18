@@ -11,6 +11,7 @@ return { shieldarty = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","artillery"},
     bait_level_default = 1,
     normaltex = [[unittextures/b_dom_morty_advcon_freaker_normals.dds]],
   },

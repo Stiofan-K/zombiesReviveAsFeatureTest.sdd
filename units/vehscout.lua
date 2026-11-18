@@ -18,6 +18,7 @@ return { vehscout = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","scout"},
     modelradius    = [[7]],
     aim_lookahead  = 80,
     selection_scale = 1.04,

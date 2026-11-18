@@ -17,6 +17,7 @@ return { cloakassault = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","assault"},
     modelradius    = [[12]],
     cus_noflashlight = 1,
     bait_level_default = 0,

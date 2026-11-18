@@ -13,6 +13,7 @@ return { chicken_tiamat = {
   category            = [[LAND FIREPROOF]],
 
   customParams        = {
+    unit_class_tags = {"chicken","striderDemi","shield"},
     fireproof          = 1,
     shield_emit_height = 32,
     shield_emit_offset = -4,

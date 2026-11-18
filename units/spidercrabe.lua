@@ -14,6 +14,7 @@ return { spidercrabe = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","striderDemi"},
     aim_lookahead  = 160,
     bait_level_default = 0,
     aimposoffset   = [[0 0 0]],

@@ -17,6 +17,7 @@ return { striderbantha = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","striderHeavy"},
     aim_lookahead      = 120,
     bait_level_default = 0,
     extradrawrange     = 465,

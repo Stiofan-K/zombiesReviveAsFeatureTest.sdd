@@ -33,6 +33,7 @@ return { factoryhover = {
   corpse           = [[DEAD]],
 
   customParams     = {
+    unit_class_tags = {"baseGame","factory"},
     ploppable = 1,
     sortName            = [[8]],
     modelradius         = [[60]],

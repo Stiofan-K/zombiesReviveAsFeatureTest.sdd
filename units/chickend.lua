@@ -11,6 +11,7 @@ return { chickend = {
   category                      = [[SINK]],
 
   customParams                  = {
+    unit_class_tags = {"chicken","turretLight","ecoLight"}, -- makes E! could make a lil more for cost efficency reasons
   },
 
   energyMake                    = 2,

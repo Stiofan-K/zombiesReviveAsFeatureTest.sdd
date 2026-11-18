@@ -18,6 +18,7 @@ return { energywind = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","ecoLight"},
     bait_level_target = 1,
     pylonrange     = 63,
     windgen        = true,

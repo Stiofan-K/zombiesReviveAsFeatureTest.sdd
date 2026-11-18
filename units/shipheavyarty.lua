@@ -16,6 +16,7 @@ return { shipheavyarty = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","striderMedium"},
     aim_lookahead      = 120,
     bait_level_default = 1,
     modelradius        = [[80]],

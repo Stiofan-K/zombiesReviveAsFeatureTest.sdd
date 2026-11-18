@@ -18,6 +18,7 @@ return { chickenf = {
   cruiseAltitude      = 150,
 
   customParams        = {
+    unit_class_tags = {"chicken","bomberLight","aerialAA"},
     outline_x = 180,
     outline_y = 180,
     outline_yoff = 17.5,

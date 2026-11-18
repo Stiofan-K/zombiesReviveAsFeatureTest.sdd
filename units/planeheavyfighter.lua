@@ -21,6 +21,7 @@ return { planeheavyfighter = {
   cruiseAltitude         = 220,
 
   customParams           = {
+    unit_class_tags = {"baseGame","aerialAA"},
     bait_level_default = 0,
     bait_level_target      = 3,
 

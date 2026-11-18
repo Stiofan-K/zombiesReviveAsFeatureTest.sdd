@@ -11,6 +11,7 @@ return { chicken_leaper = {
   category            = [[LAND]],
 
   customParams        = {
+    unit_class_tags = {"extraChickens","raider"}, -- hmm feels okay as a raider?
     outline_x = 145,
     outline_y = 145,
     outline_yoff = 17.5,

@@ -12,6 +12,7 @@ return { chickens = {
   category            = [[SWIM]],
 
   customParams        = {
+    unit_class_tags = {"chicken","skirmisher"},
     outline_x = 115,
     outline_y = 115,
     outline_yoff = 20,

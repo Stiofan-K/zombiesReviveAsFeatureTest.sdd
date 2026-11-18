@@ -16,6 +16,7 @@ return { staticradar = {
   corpse                        = [[DEAD]],
   
   customParams = {
+    unit_class_tags = {"baseGame","staticSupport"},
     morphto        = [[planelightscout]],
     morphtime      = 24,
     modelradius    = [[16]],

@@ -15,6 +15,7 @@ return { shieldriot = {
   selectionVolumeType    = [[ellipsoid]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","riot"},
     selection_scale   = 0.85,
 
     outline_x = 80,

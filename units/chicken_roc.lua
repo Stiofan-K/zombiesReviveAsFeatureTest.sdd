@@ -18,6 +18,7 @@ return { chicken_roc = {
   cruiseAltitude      = 150,
 
   customParams        = {
+    unit_class_tags = {"chicken","bomberHeavy"},
     outline_x = 180,
     outline_y = 180,
     outline_yoff = 17.5,

@@ -11,6 +11,7 @@ return { planecon = {
   builder             = true,
 
   buildoptions        = {
+    unit_class_tags = {"baseGame","constructor"},
   },
 
   buildPic            = [[planecon.png]],

@@ -13,6 +13,7 @@ return { turretsunlance = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","turretHeavy"},
     keeptooltip    = [[any string I want]],
     neededlink     = 25,
     pylonrange     = 50,

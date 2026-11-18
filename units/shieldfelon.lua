@@ -12,6 +12,7 @@ return { shieldfelon = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","skirmisher"},
     bait_level_default = 1,
     shield_emit_height = 25,
     shield_color_mult = 1.1,

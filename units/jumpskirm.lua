@@ -20,6 +20,7 @@ return { jumpskirm = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","skirmisher"},
     aim_lookahead      = 80,
     bait_level_default = 1,
     dontfireatradarcommand = '1',

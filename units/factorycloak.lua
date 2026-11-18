@@ -32,6 +32,7 @@ return { factorycloak = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","factory"},
     ploppable = 1,
     sortName            = [[1]],
     default_spacing     = 8,

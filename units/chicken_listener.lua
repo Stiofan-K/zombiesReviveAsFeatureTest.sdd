@@ -12,6 +12,7 @@ return { chicken_listener = {
   category            = [[LAND UNARMED]],
 
   customParams        = {
+    --unit_class_tags = {"extraChickens","support"}, --Needs work to well, work.
     outline_x = 85,
     outline_y = 85,
     outline_yoff = 9,

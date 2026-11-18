@@ -35,6 +35,7 @@ return { factoryamph = {
   corpse           = [[DEAD]],
 
   customParams     = {
+    unit_class_tags = {"baseGame","factory"},
     ploppable      = 1,
     modelradius    = [[42]],
     aimposoffset   = [[0 0 -26]],

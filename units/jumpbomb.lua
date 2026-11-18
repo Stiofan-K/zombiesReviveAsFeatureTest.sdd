@@ -20,6 +20,7 @@ return { jumpbomb = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","antiHeavy"},
     canjump          = 1,
     jump_range       = 400,
     jump_height      = 120,

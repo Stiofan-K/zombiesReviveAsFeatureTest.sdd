@@ -19,6 +19,7 @@ return { chickenlandqueen = {
   collisionVolumeType    = [[box]],
 
   customParams           = {
+    unit_class_tags = {"chicken","striderHeavy"}, --unsure if it makes sense for chicken queen
     selection_scale       = 2,
 
     outline_x = 400,

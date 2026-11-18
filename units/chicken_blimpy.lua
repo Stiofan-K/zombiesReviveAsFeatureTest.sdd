@@ -17,6 +17,7 @@ return { chicken_blimpy = {
   cruiseAltitude      = 250,
 
   customParams        = {
+    unit_class_tags = {"chicken","bomberLight"},
   },
 
   explodeAs           = [[NOWEAPON]],

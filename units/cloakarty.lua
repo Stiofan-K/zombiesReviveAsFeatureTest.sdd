@@ -14,6 +14,7 @@ return { cloakarty = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","artillery"},
     aim_lookahead      = 140,
     bait_level_default = 0,
     modelradius       = [[14]],

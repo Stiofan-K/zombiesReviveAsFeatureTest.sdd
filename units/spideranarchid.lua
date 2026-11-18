@@ -14,6 +14,7 @@ return { spideranarchid = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    --unit_class_tags = {"extraUnits","raider","riot"},
   },
 
   explodeAs              = [[BIG_UNITEX]],

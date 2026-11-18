@@ -15,6 +15,7 @@ return { zenith = {
   corpse                        = [[DEAD]],
   
   customParams                  = {
+    unit_class_tags = {"baseGame","super"},
     keeptooltip = [[any string I want]],
     --neededlink  = 150,
     --pylonrange  = 150,

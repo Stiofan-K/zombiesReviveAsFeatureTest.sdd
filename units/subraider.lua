@@ -16,6 +16,7 @@ return { subraider = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","raider","antiSub"},
     modelradius    = [[13]],
     aimposoffset   = [[0 1 0]],
     midposoffset   = [[0 -5 0]],

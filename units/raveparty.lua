@@ -21,6 +21,7 @@ return { raveparty = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","super"},
     modelradius    = [[35]],
     bait_level_default = 0,
     draw_blueprint_facing = 1,

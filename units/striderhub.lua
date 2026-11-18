@@ -34,6 +34,7 @@ return { striderhub = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","constructor"},
     neededlink     = 50,
     pylonrange     = 50,
     keeptooltip    = [[any string I want]],

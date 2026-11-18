@@ -14,6 +14,7 @@ return { chickenspire = {
   collisionVolumeType           = [[CylY]],
 
   customParams                  = {
+    unit_class_tags = {"chicken","skirmisher"},
     outline_x = 155,
     outline_y = 200,
     outline_yoff = 75,

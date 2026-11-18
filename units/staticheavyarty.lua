@@ -14,6 +14,7 @@ return { staticheavyarty = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","staticStrategic"},
     neededlink     = 50,
     pylonrange     = 50,
     keeptooltip    = [[any string I want]],

@@ -14,6 +14,7 @@ return { shieldskirm = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","skirmisher"},
     aim_lookahead  = 120,
     aimposoffset   = [[0 5 0]],
     midposoffset   = [[0 5 0]],

@@ -18,6 +18,7 @@ return { vehcapture = {
   corpse              = [[DEAD]],
 
   customParams        = {
+    unit_class_tags = {"baseGame","skirmisher"},
     bait_level_default = 1,
     modelradius    = [[13]],
     turnatfullspeed = [[1]],

@@ -18,6 +18,7 @@ return { energypylon = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
+    unit_class_tags = {"baseGame","ecoSupport"},
     pylonrange = 500,
     aimposoffset   = [[0 0 0]],
     midposoffset   = [[0 -6 0]],

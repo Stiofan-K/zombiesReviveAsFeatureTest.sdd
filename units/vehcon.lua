@@ -20,6 +20,7 @@ return { vehcon = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","constructors"},
     modelradius    = [[20]],
     selection_scale = 1.2,
     cus_noflashlight = 1,

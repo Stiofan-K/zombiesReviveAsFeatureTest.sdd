@@ -19,6 +19,7 @@ return { chicken_dragon = {
   collisionVolumeType    = [[box]],
 
   customParams           = {
+    unit_class_tags = {"chicken","striderHeavy"},--seems appropriate
     outline_x = 270,
     outline_y = 270,
     outline_yoff = 40,
