@@ -13,19 +13,12 @@ return { chicken_drone = {
 
   customParams        = {
 	morphto_1 = "chickend",
-	morphtime_1 = 12,
+	morphtime_1 = 20,
+	morphcost_1 = 15,
 
 	morphto_2 = "chickenspire",
-	morphtime_2 = 350,
-
-	morphto_3 = "roost",
-	morphtime_3 = 34,
-
-	morphto_4 = "chicken_rafflesia",
-	morphtime_4 = 48,
-
-	morphto_5 = "chickenbroodqueen",
-	morphtime_5 = 100,
+	morphtime_2 = 90,
+	morphcost_2 = 600,
   },
 
   energyMake          = 0,
@@ -41,7 +34,9 @@ return { chicken_drone = {
   leaveTracks         = true,
   maxSlope            = 36,
   maxWaterDepth       = 5000,
-  metalCost           = 60,
+  metalCost           = 0,
+  energyCost          = 0,
+  buildTime           = 60,
   metalMake           = 0,
   metalStorage        = 50,
   movementClass       = [[AKBOT2]],

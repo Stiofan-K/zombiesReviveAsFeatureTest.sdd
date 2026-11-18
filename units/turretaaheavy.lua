@@ -1,0 +1,188 @@
+return { turretaaheavy = {
+  name                          = [[Artemis]],
+  description                   = [[Very Long-Range Anti-Air Missile Tower, Drains 4 m/s, 20 second stockpile]],
+  activateWhenBuilt             = true,
+  builder                       = false,
+  buildingGroundDecalDecaySpeed = 30,
+  buildingGroundDecalSizeX      = 6,
+  buildingGroundDecalSizeY      = 6,
+  buildingGroundDecalType       = [[turretaaheavy_aoplane.dds]],
+  buildPic                      = [[turretaaheavy.png]],
+  category                      = [[SINK]],
+  collisionVolumeOffsets        = [[0 0 0]],
+  collisionVolumeScales         = [[74 74 74]],
+  collisionVolumeType           = [[ellipsoid]],
+  corpse                        = [[DEAD]],
+
+  customParams                  = {
+    bait_level_default = 2,
+    modelradius    = [[37]],
+    stockpilecost  = [[80]],
+    stockpiletime  = [[20]],
+    priority_misc  = 1, -- Medium
+    okp_damage = 1600,
+    normaltex = [[unittextures/Core_normals.dds]],
+  },
+
+  explodeAs                     = [[ESTOR_BUILDING]],
+  footprintX                    = 4,
+  footprintZ                    = 4,
+  health                        = 3200,
+  iconType                      = [[heavysam]],
+  maxSlope                      = 18,
+  maxWaterDepth                 = 0,
+  metalCost                     = 2400,
+  noAutoFire                    = false,
+  objectName                    = [[SCREAMER.s3o]],
+  onoffable                     = false,
+  script                        = [[turretaaheavy.lua]],
+  selfDestructAs                = [[ESTOR_BUILDING]],
+  sightDistance                 = 660,
+  useBuildingGroundDecal        = true,
+  workerTime                    = 0,
+  yardMap                       = [[oooooooooooooooo]],
+
+  weapons                       = {
+
+    {
+      def                = [[ADVSAM]],
+      onlyTargetCategory = [[FIXEDWING GUNSHIP SATELLITE]],
+    },
+    {
+      def                = [[FUDGE_AIM_WEAPON]],
+      onlyTargetCategory = [[FIXEDWING GUNSHIP SATELLITE]],
+    },
+
+  },
+
+
+  weaponDefs                    = {
+
+    ADVSAM = {
+      name                    = [[Advanced Anti-Air Missile]],
+      areaOfEffect            = 240,
+      canAttackGround         = false,
+      cegTag                  = [[turretaaheavytrail]],
+      craterBoost             = 0.1,
+      craterMult              = 0.2,
+      cylinderTargeting       = 3.2,
+
+      customParams              = {
+        broken_target_replacement = 2,
+        isaa = [[1]],
+        radar_homing_distance = 1800,
+
+        light_color = [[1.5 1.8 1.8]],
+        light_radius = 600,
+      },
+
+      damage                  = {
+        default    = 160.15,
+        planes     = 1601.5,
+      },
+
+      edgeEffectiveness       = 0.25,
+      energypershot           = 80,
+      explosionGenerator      = [[custom:MISSILE_HIT_SPHERE_120]],
+      fireStarter             = 90,
+      flightTime              = 4,
+      groundbounce            = 1,
+      impulseBoost            = 0,
+      impulseFactor           = 0,
+      interceptedByShieldType = 1,
+      leadlimit               = 0,
+      metalpershot            = 80,
+      model                   = [[wep_m_avalanche.s3o]], -- Model radius 180 for QuadField fix.
+      noSelfDamage            = true,
+      range                   = 2400,
+      reloadtime              = 1.8,
+      smokeTrail              = false,
+      soundHit                = [[weapon/missile/heavy_aa_hit]],
+      soundStart              = [[weapon/missile/heavy_aa_fire2]],
+      startVelocity           = 1000,
+      stockpile               = true,
+      stockpileTime           = 10000,
+      texture1                = [[flarescale01]],
+      tolerance               = 10000,
+      tracks                  = true,
+      trajectoryHeight        = 0.55,
+      turnRate                = 60000,
+      turret                  = true,
+      weaponAcceleration      = 600,
+      weaponType              = [[MissileLauncher]],
+      weaponVelocity          = 1600,
+    },
+
+    FUDGE_AIM_WEAPON = {
+      name                    = [[Long-Range SAM]],
+      areaOfEffect            = 24,
+      canattackground         = false,
+      cegTag                  = [[chainsawtrail]],
+      craterBoost             = 0,
+      craterMult              = 0,
+      cylinderTargeting       = 1,
+
+      customParams              = {
+        isaa = [[1]],
+        light_color = [[0.6 0.7 0.7]],
+        light_radius = 420,
+      },
+
+      damage                  = {
+        default = 22.51,
+        planes  = 225.1,
+      },
+
+      explosionGenerator      = [[custom:MISSILE_HIT_PIKES_160]],
+      fireStarter             = 20,
+      flightTime              = 4,
+      impactOnly              = true,
+      impulseBoost            = 0.123,
+      impulseFactor           = 0.0492,
+      interceptedByShieldType = 2,
+      leadlimit               = 0,
+      model                   = [[wep_m_phoenix.s3o]], -- Model radius 150 for QuadField fix.
+      noSelfDamage            = true,
+      range                   = 2400,
+      reloadtime              = 1,
+      smokeTrail              = true,
+      soundHit                = [[weapon/missile/med_aa_hit]],
+      soundStart              = [[weapon/missile/med_aa_fire]],
+      soundTrigger            = true,
+      startVelocity           = 550,
+      texture1                = [[flarescale01]],
+      texture2                = [[AAsmoketrail]],
+      tolerance               = 16000,
+      tracks                  = true,
+      trajectoryHeight        = 0.4,
+      turnRate                = 55000,
+      turret                  = true,
+      waterweapon             = true,
+      weaponAcceleration      = 550,
+      weaponType              = [[MissileLauncher]],
+      weaponVelocity          = 800,
+    },
+
+  },
+
+
+  featureDefs                   = {
+
+    DEAD  = {
+      blocking         = true,
+      featureDead      = [[HEAP]],
+      footprintX       = 4,
+      footprintZ       = 4,
+      object           = [[screamer_dead.s3o]],
+    },
+
+    HEAP  = {
+      blocking         = false,
+      footprintX       = 4,
+      footprintZ       = 4,
+      object           = [[debris4x4a.s3o]],
+    },
+
+  },
+
+} }
