@@ -15,7 +15,7 @@ return { amphaa = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_classification = {"baseGame","amphibious","antiAir"},
+    unit_classification = {"baseGame","antiAir"},
     aim_lookahead      = 150,
     bait_level_default = 0,
     amph_regen        = 20,

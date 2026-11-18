@@ -15,7 +15,7 @@ return { amphfloater = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_classification = {"baseGame","amphibious","skirmisher"},
+    unit_class_tags    = {"baseGame","skirmisher"},
     bait_level_default = 0,
     aim_lookahead      = 100,
     amph_regen         = 60,

@@ -15,6 +15,7 @@ return { amphriot = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"baseGame","riot"},
     aim_lookahead      = 120,
     amph_regen         = 10,
     amph_submerged_at  = 40,

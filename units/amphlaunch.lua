@@ -16,7 +16,7 @@ return { amphlaunch = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_classification = {"baseGame","amphibious","raider","riot"},
+    unit_class_tags    = {"baseGame","support"},
     amph_regen         = 10,
     amph_submerged_at  = 40,
     thrower_gather     = 160,

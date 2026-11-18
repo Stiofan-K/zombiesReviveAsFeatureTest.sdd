@@ -17,7 +17,7 @@ return { amphcon = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_classification = {"baseGame","amphibious","constructor"},
+    unit_class_tags   = {"baseGame","constructor"},
     bait_level_target_armor = 1,
     morphto        = [[amphtele]],
     morphtime      = 20,

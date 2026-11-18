@@ -23,6 +23,7 @@ return { bomberheavy = {
   cruiseAltitude      = 250,
 
   customParams        = {
+    unit_class_tags = {"baseGame","bomberHeavy"},
     modelradius      = [[10]],
     reammoseconds    = [[25]],
     refuelturnradius = [[150]],

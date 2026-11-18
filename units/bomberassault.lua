@@ -20,6 +20,7 @@ return { bomberassault = {
   cruiseAltitude      = 280,
 
   customParams        = {
+    unit_class_tags = {"baseGame","bomberHeavy"},
     refuelturnradius       = [[300]],
     refuelmaxbank          = 0.015,
     reammoseconds          = 30,

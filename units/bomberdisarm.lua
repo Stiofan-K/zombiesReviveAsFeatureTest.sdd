@@ -18,6 +18,7 @@ return { bomberdisarm = {
   cruiseAltitude      = 180,
 
   customParams        = {
+    unit_class_tags = {"baseGame","bomberLight","support"}, --support maaay be fitting?
     modelradius    = [[10]],
     refuelturnradius = [[170]],
     reammoseconds    = [[15]],

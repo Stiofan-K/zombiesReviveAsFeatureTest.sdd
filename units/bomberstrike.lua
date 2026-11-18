@@ -18,6 +18,7 @@ return { bomberstrike = {
   cruiseAltitude      = 160,
 
   customParams        = {
+    unit_class_tags = {"baseGame","bomberLight"},
     reallyabomber    = [[1]],
     reammoseconds    = [[10]],
     refuelturnradius = [[150]],

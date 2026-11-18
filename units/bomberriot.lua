@@ -21,6 +21,7 @@ return { bomberriot = {
   cruiseAltitude      = 160,
 
   customParams        = {
+    unit_class_tags = {"baseGame","bomberLight"},
     modelradius    = [[10]],
     refuelturnradius = [[120]],
     reammoseconds = 18,

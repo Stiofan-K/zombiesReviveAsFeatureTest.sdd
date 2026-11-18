@@ -15,7 +15,7 @@ return { amphimpulse = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_classification = {"baseGame","amphibious","raider","riot"},
+    unit_class_tags   = {"baseGame","raider","riot"},
     amph_regen        = 15,
     amph_submerged_at = 40,
     sink_on_emp       = 1,

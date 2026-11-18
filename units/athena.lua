@@ -55,6 +55,7 @@ return { athena = {
   cruiseAltitude      = 80,
 
   customParams        = {
+    unit_class_tags = {"baseGame","support"},
     airstrafecontrol = [[1]],
     modelradius    = [[15]],
     isfakefactory = 1,

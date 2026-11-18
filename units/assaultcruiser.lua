@@ -16,6 +16,7 @@ return { assaultcruiser = {
   corpse                 = [[DEAD]],
 
   customParams           = {
+    unit_class_tags = {"extraUnits","assault","antiSub"},
   },
 
   explodeAs              = [[BIG_UNIT]],
