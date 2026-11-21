@@ -24,7 +24,7 @@ end
 
 
 local MAP_AREA_TO_CAMP_RATIO = 45
-local MAP_AREA_TO_VALUE_MULT = 12
+local MAP_AREA_TO_VALUE_MULT = 15
 local AUTO_MAP_VALUE_OFFSET = -200
 local AUTO_WRECK_COUNT_MULT = 1.5
 local AUTO_WRECK_VALUE_MULT = 0.7
@@ -195,38 +195,57 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     return {assault = 1}
 end
 
-local function GetMixedComposition(staticValue,mobileValue)
+local function GetMixedComposition(staticValue,mobileValue,sectionGroups)
 	local mobileComposition = GetGroupCompositionByBudgetAndType(mobileValue,mobileCompositions)
-	local mobileUnitComposition = GG.UnitSpawnerCompositionBuilder(mobileValue,mobileComposition)
+	local mobileUnitComposition = GG.UnitSpawnerCompositionBuilder(mobileValue,mobileComposition,sectionGroups)
 	local staticComposition = GetGroupCompositionByBudgetAndType(staticValue,staticCompositions)
-	local staticUnitComposition = GG.UnitSpawnerCompositionBuilder(staticValue,staticComposition)
+	local staticUnitComposition = GG.UnitSpawnerCompositionBuilder(staticValue,staticComposition,sectionGroups)
 	return GG.UnitSpawnerAddUnitLists({mobileUnitComposition,staticUnitComposition})
 end
 
 
-local function SetupUnitComposition(campValue,mobileRatio)
+local function SetupUnitComposition(campValue,mobileRatio,sectionGroups)
 	local unitComposition = {}
 	if mobileRatio == 1 then
 		local mobileComposition = GetGroupCompositionByBudgetAndType(campValue,mobileCompositions)
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileComposition)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileComposition,sectionGroups)
 	elseif mobileRatio == 0 then
 		local staticComposition = GetGroupCompositionByBudgetAndType(campValue,staticCompositions)
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticComposition)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticComposition,sectionGroups)
 	else
 		local mobileBudget = campValue * mobileRatio
 		local staticBudget = campValue - mobileBudget
-		unitComposition = GetMixedComposition(staticBudget,mobileBudget)
+		unitComposition = GetMixedComposition(staticBudget,mobileBudget,sectionGroups)
 	end
 	return unitComposition
 end
 
 local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecksRatio)
+	local sectionGroups = nil--{"chickens","extraChickens"}
 	local unitIDs
 	local teamID = GaiaTeamID
 	local wreckBudget = 0
 	if additionWrecksRatio ~= 0 then
 		wreckBudget = unitBudget * additionWrecksRatio * WRECK_TO_UNIT_COST_MULT
 	end
+	
+	--uneven number results in big map center camp :o 
+	if campCount % 2 == 1 then
+		local unitComposition = SetupUnitComposition(unitBudget*CENTER_CAMP_MULT,mobileRatio,sectionGroups)
+		--Spring.Utilities.TableEcho(unitComposition)
+		if wreckBudget > 0 then
+			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,mobileRatio)
+			for index, value in ipairs(wreckComposition) do
+				value.wreckChance = 1
+				value.spacing = math.random(32,64)
+			end
+			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
+		end
+		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
+		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
+		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
+	end
+	
 	
 	for i = 1, campCount/2, 1 do
 		--we mirror for an attempt at fairness.
@@ -237,7 +256,7 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 		
 		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
 		x2,z2 = mapSizeX-x,mapSizeZ-z
-		-- My startbox jutsu has improved 
+		-- My startbox jutsu has improved!! 
 		while CheckLavaAndStartbox(x,z,CIRCLE_CHECK_RADIUS) or CheckLavaAndStartbox(x2,z2,CIRCLE_CHECK_RADIUS)  do
 			x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
 			x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
@@ -249,7 +268,7 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 			end
 			iteration = iteration +1
 		end
-		local unitComposition = SetupUnitComposition(unitBudget,mobileRatio)
+		local unitComposition = SetupUnitComposition(unitBudget,mobileRatio,sectionGroups)
 		if wreckBudget > 0 then
 			local wreckComposition = SetupUnitComposition(wreckBudget,mobileRatio)
 			for index, value in ipairs(wreckComposition) do
@@ -267,22 +286,6 @@ local function SpawnNeutralCamps(campCount,unitBudget,mobileRatio,additionWrecks
 		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
 		Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
-	end
-	--uneven number results in big map center camp :o 
-	if campCount % 2 == 1 then
-		local unitComposition = SetupUnitComposition(unitBudget*CENTER_CAMP_MULT,mobileRatio)
-		--Spring.Utilities.TableEcho(unitComposition)
-		if wreckBudget > 0 then
-			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,mobileRatio)
-			for index, value in ipairs(wreckComposition) do
-				value.wreckChance = 1
-				value.spacing = math.random(32,64)
-			end
-			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
-		end
-		teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
-		unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
-		Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 	end
 end
 
@@ -393,10 +396,8 @@ end
 
 function gadget:GameStart()
 	
-	--[[
 	local testCount, testValue = GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
 	Spring.Echo("CampCount = "..testCount)
 	Spring.Echo("CampStaticValue = "..testValue-testValue*startingNeutralMobileRatio)
 	Spring.Echo("CampMobileValue = "..testValue*startingNeutralMobileRatio)
-	]]
 end

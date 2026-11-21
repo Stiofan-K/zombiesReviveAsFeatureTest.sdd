@@ -12,7 +12,7 @@ return { chicken_digger = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {sectiontags = "extraChickens", classtags = "raider"}, --Maybe if updated with some extra functionality it would be good
+    --unit_class_tags = {sectiontags = "extraChickens", classtags = "raider"}, --Maybe if updated with some extra functionality it would be good
   },
 
   explodeAs           = [[SMALL_UNITEX]],

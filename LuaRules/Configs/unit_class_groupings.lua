@@ -13,19 +13,6 @@
 
 -- [[ATKBOT3]] spiders that can water? mostly chickens
 
-
--- stealth, jam and cloak compound into the stealth groupings NOPE CANT DO THAT CUZ ATHENAAA AAAAAAAUGH... unless?
--- Group by combat roles, and athena, conj and such are fine! yay!
-
--- I suppose I could read drones by the "is drone" thing huh... but I think I would like it hardcoded anyhow?
-
--- geos are uncategories, though tbh a variant that doesnt care about geo spots sounds good! pw buildings ig
-
--- factoies could be gotten via factory tab or something else, but it seems safest not to assume it would be the same always!
---GUH what factories are water placeable how does it knooow?!??!??!?!?!???!!!!
-
--- get plates by factories?!?!? nah lets not! I suppose we could add both to the factory pool?
-
 -- no need for sea strider category if we can differentiate via movetypes
 
 -- shield category may be doable with just shields mabi
@@ -41,12 +28,6 @@
 -- Dozer and slicer have potential TM but are not ready really
 
 -- Lancelet needs some stuff but then could be good
-
--- Check sunlance!
-
---GUH I'm gonna be implementing a sql esque query thing guuuuuuuuuuuuuuuuh?
-
---nifty!
 
 --What a handy thing to find!
 -- only thing here thats iffy is the air movetype for atkbot3... but it fits I spose!

@@ -30,7 +30,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local classGroupings, sectionGroupings, taggedUnitDefNames , taggedUnitDefIDs = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local SPACING_MIN = 0
-local SPACING_MAX = 80
+local SPACING_MAX = 64
 local Y_OFFSET = 0
 
 --Utilities
@@ -78,7 +78,11 @@ local function GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNameTable,cl
 		--pyramid is meh, but break doesnt go to the next loop does it?
 		if not classGroups or CheckTagAndGroupMatch(unitDefTags.classTags,classGroups) then
 			if not sectionGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,sectionGroups) then
-				if not moveGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,moveGroups) then
+				if not moveGroups or 
+				unitDefTags.movementTags == "static" or 
+				unitDefTags.movementTags == "air" or 
+				-- this ends up with mostly BW in bombs as an issue maybe, other gs and planes are not bound to normal roles, they are too finiky for that
+				CheckTagAndGroupMatch(unitDefTags.movementTags,moveGroups) then
 					if not returnUnitList then
 						returnUnitList = {unitDefName}
 					else
@@ -91,8 +95,10 @@ local function GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNameTable,cl
 	return returnUnitList
 end
 
-
 local function GetRandomUnitsFromDefListByCount(targetCount,unitDefNameList,multiRandomise)
+	if not unitDefNameList then
+		return {}
+	end
 	local unitDefName = unitDefNameList[math.random(#unitDefNameList)]
 	if not multiRandomise then
 		local returnUnitArray = {} 
@@ -120,6 +126,11 @@ end
 
 
 local function GetRandomUnitsFromDefListForCost(budget,unitDefNameList,multiRandomise)
+	if not unitDefNameList then
+		Spring.Echo("unitDefName ended up empty")
+		Spring.Echo(unitDefNameList)
+		return {},budget,0
+	end
 	local unitDefArrayKeys = {}
 	local returnUnitArray = {}
 	local excess = 0
@@ -186,14 +197,14 @@ A more complex setup would be
 returns something akin to 
 { unitDefName = "vehriot",count = 2,wreckChance = 0.5,spacing = 64}
 ]]
-local function CompositionBuilder(budget,unitGroupAndParams,defaultSectionGroups,customTaggedUnitDefNames)
+local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,movementGroups,customTaggedUnitDefNames)
 	local returnComposition = {}
 	local typeComposition = {}
 	local budgetTotalFraction = 0
 	local excessBudget = 0
 	--Spring.Echo(unitTypeAndRatio)
-	if not defaultSectionGroups then
-		defaultSectionGroups = {"baseGame","extraUnits"}
+	if not sectionGroups then
+		sectionGroups = {"baseGame","extraUnits"}
 	end
 	if not customTaggedUnitDefNames then --if wished one can modify the base configs somewhere and supply them again.
 		customTaggedUnitDefNames = taggedUnitDefNames
@@ -218,15 +229,15 @@ local function CompositionBuilder(budget,unitGroupAndParams,defaultSectionGroups
 	--its meh that we loop twice but otherwise we can't get the total Fractions right? I suppose using % would work, but that is more math on the end user
 	for index, data in pairs(unitGroupAndParams) do
 		local classGroups = nil
-		local sectionGroups = defaultSectionGroups
+		local sectionGroups = sectionGroups
 		local budgetFraction = 1
-		local multiRandomise = false
+		local multiRandomise = math.random() < 0.5
 		local minUnits = 0
 		local wreckChance = 0
 		local unitCount
 		if type(data) == "table" and data.classGroup then
-			classGroups = data.classGroup
-			sectionGroups = sectionGroups or defaultSectionGroups
+			classGroups = data.classGroup or classGroups
+			sectionGroups = sectionGroups or sectionGroups
 			budgetFraction = data.budgetFraction or budgetFraction
 			multiRandomise = data.multiRandomise or multiRandomise
 			minUnits = data.minUnits or minUnits
@@ -256,9 +267,10 @@ local function CompositionBuilder(budget,unitGroupAndParams,defaultSectionGroups
 			if type(classGroups) ~= table then
 				classGroups = {classGroups}
 			end
-			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups)
-		--TODO customisability is iffy with this...
+			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups,movementGroups)
+			Spring.Utilities.TableEcho(selectedUnitDefList)
 			typeComposition,excessBudget,unitCount = GetRandomUnitsFromDefListForCost(budgetToSpend,selectedUnitDefList,multiRandomise)
+			Spring.Utilities.TableEcho(typeComposition)
 			if unitCount < minUnits then
 				local unitsToMin = minUnits - unitCount
 				local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
@@ -284,14 +296,14 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 		local unitDefName = nil
 		local spawnCount = 1
 		local spawnAsWreckChance = 0 --TODO hmm chance vs ratio... I suppose we can have wrecks, and normal units defined, but a chance covers that too
-		local spacing = math.random (SPACING_MIN,SPACING_MAX)
+		local spacing = nil --if unset is randomised a little per spawn
 		local dropPod = true
 		local spawnPattern = "centered"
 		if type(data) == "table" and data.unitDefName then
 			unitDefName = data.unitDefName
 			spawnCount = data.unitCount or 1
 			spawnAsWreckChance = data.wreckChance or spawnAsWreckChance
-			spacing = data.spacing or spacing
+			spacing = data.spacing or nil
 			dropPod = data.dropPod or dropPod
 			spawnPattern = data.spawnPattern or spawnPattern
 			--Spring.Echo(unitDefName)
@@ -327,7 +339,11 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 			if unitID then
 				spawnedUnits[unitID] = true
 				timeToGroundOffset = timeToGroundOffset + 5
-				noGoZones = GG.NoGoZonesAddNoGoZone(localX,localZ,math.max(sX, sZ) + spacing,noGoZones)
+				local localSpacing = spacing
+				if not localSpacing then
+					localSpacing = math.random (SPACING_MIN,SPACING_MAX)
+				end
+				noGoZones = GG.NoGoZonesAddNoGoZone(localX,localZ,math.max(sX, sZ)+localSpacing,noGoZones)
 				if spawnAsWreckChance == 1 or spawnAsWreckChance > math.random() then
 					Spring.CreateUnitWreck(unitID)
 					--TODO for factories this causes a looping error in the factory flattening gadget until another factory is placed. Seems to be harmless, but is best handled still
@@ -402,14 +418,14 @@ end
 
 local function CompositionBuilderTest()
 	local spawnList = GG.UnitSpawnerCompositionBuilder(
-	3000,
+	1800,
 		{
-			{classGroup = "ecoLight", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
+			--{classGroup = "ecoLight", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
 			assault = 1,
 			skirm = 1,
 			turretLight = 1,
-			energypylon = 1
-		}
+			--energypylon = 1
+		},{"baseGame","extraUnits"},{"veh","bot","hover"}
 	)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
 end
@@ -419,6 +435,9 @@ function gadget:GameStart()
 	
 	--local test = GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNames,{"skirm"},{"baseGame","extraUnits"})
 	--Spring.Utilities.TableEcho(test)
+	
+	--local staticUnits, movetypeDefID, movetypes = VFS.Include("LuaRules/Configs/CAI/unitMovetype.lua")
+	--Spring.Utilities.TableEcho(staticUnits)
 	
 	--Spring.Utilities.TableEcho(taggedUnitDefNames)
 	--Spring.Echo("spawningTest")
