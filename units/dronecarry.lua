@@ -39,7 +39,7 @@ return { dronecarry = {
   stealth                = true,
   
   customParams        = {
-    unit_class_tags = {"baseGame","drone"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="drone"},
     bait_level_target      = 1,
     is_drone = 1,
     modelradius    = [[13]],

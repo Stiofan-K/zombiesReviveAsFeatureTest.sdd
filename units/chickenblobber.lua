@@ -12,7 +12,7 @@ return { chickenblobber = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {"chicken","artillery"},
+    unit_class_tags = {sectiontags = "chickens", classtags = "artillery"},
   },
 
   explodeAs           = [[NOWEAPON]],

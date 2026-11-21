@@ -27,7 +27,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local modOptions = Spring.GetModOptions()
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-local allUnitGroups = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
+local classGroupings, sectionGroupings, taggedUnitDefNames , taggedUnitDefIDs = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local SPACING_MIN = 0
 local SPACING_MAX = 80
@@ -60,7 +60,39 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function GetRandomUnitsFromTypeListByCount(targetCount,unitDefNameList,multiRandomise)
+--
+local function CheckTagAndGroupMatch(tagsToMatch,groupsToMatch)
+	for index, tag in ipairs(tagsToMatch) do
+		for index, group in ipairs(groupsToMatch) do
+			if tag == group  then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNameTable,classGroups,sectionGroups,moveGroups)
+	local returnUnitList
+	for unitDefName, unitDefTags in pairs(taggedUnitDefNameTable) do
+		--pyramid is meh, but break doesnt go to the next loop does it?
+		if not classGroups or CheckTagAndGroupMatch(unitDefTags.classTags,classGroups) then
+			if not sectionGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,sectionGroups) then
+				if not moveGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,moveGroups) then
+					if not returnUnitList then
+						returnUnitList = {unitDefName}
+					else
+						table.insert(returnUnitList,unitDefName)
+					end
+				end
+			end
+		end
+	end
+	return returnUnitList
+end
+
+
+local function GetRandomUnitsFromDefListByCount(targetCount,unitDefNameList,multiRandomise)
 	local unitDefName = unitDefNameList[math.random(#unitDefNameList)]
 	if not multiRandomise then
 		local returnUnitArray = {} 
@@ -87,7 +119,7 @@ local function GetRandomUnitsFromTypeListByCount(targetCount,unitDefNameList,mul
 end
 
 
-local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomise)
+local function GetRandomUnitsFromDefListForCost(budget,unitDefNameList,multiRandomise)
 	local unitDefArrayKeys = {}
 	local returnUnitArray = {}
 	local excess = 0
@@ -138,34 +170,37 @@ local function GetRandomUnitsFromListForCost(budget,unitDefNameList,multiRandomi
 end
 
 --[[ 
-unitTypeAndRatio should be "scouts"= 2 where 2 is the fraction of the budget allocated on the budget
+unitTypeAndRatio should be "scout"= 2 where 2 is the fraction of the budget allocated on the budget
  so for:{
- 	scouts = 2,
-	skirmishers = 1,
+ 	scout = 2,
+	skirm = 1,
  } 
 	2/3 of the budget goes into scouts
 	1/3 goes into skirmishers
 A more complex setup would be
 {
-	{unitGroup = scouts, budgetFraction = 2, minUnits = 1, multiRandomise = true, wreckChance = 0.5},
-	{unitGroup = skirmishers, budgetFraction = 1, minUnits =2, multiRandomise = false},
-	{unitGroup = cloakriot, budgetFraction 0.2, minUnits = 5}
+	{classGroup = scout, budgetFraction = 2, minUnits = 1, multiRandomise = true, wreckChance = 0.5},
+	{classGroup = skirm, budgetFraction = 1, minUnits =2, multiRandomise = false},
+	{classGroup = cloakriot, budgetFraction 0.2, minUnits = 5}
 }
 returns something akin to 
 { unitDefName = "vehriot",count = 2,wreckChance = 0.5,spacing = 64}
 ]]
-local function CompositionBuilder(budget,unitGroupAndParams,typeList)
+local function CompositionBuilder(budget,unitGroupAndParams,defaultSectionGroups,customTaggedUnitDefNames)
 	local returnComposition = {}
 	local typeComposition = {}
 	local budgetTotalFraction = 0
 	local excessBudget = 0
 	--Spring.Echo(unitTypeAndRatio)
-	if not typeList then
-		typeList = allUnitGroups
+	if not defaultSectionGroups then
+		defaultSectionGroups = {"baseGame","extraUnits"}
+	end
+	if not customTaggedUnitDefNames then --if wished one can modify the base configs somewhere and supply them again.
+		customTaggedUnitDefNames = taggedUnitDefNames
 	end
 	for index, data in pairs(unitGroupAndParams) do
 		local budgetFraction = 1
-		if type(data) == "table" and data.unitGroup then
+		if type(data) == "table" and data.classGroup then
 			budgetFraction = data.fraction or budgetFraction
 		elseif type(data) == "number" then
 			budgetFraction = data or 1
@@ -182,42 +217,51 @@ local function CompositionBuilder(budget,unitGroupAndParams,typeList)
 	end
 	--its meh that we loop twice but otherwise we can't get the total Fractions right? I suppose using % would work, but that is more math on the end user
 	for index, data in pairs(unitGroupAndParams) do
-		local unitGroup = nil
+		local classGroups = nil
+		local sectionGroups = defaultSectionGroups
 		local budgetFraction = 1
-		local multiRandomise = true
+		local multiRandomise = false
 		local minUnits = 0
 		local wreckChance = 0
 		local unitCount
-		if type(data) == "table" and data.unitGroup then
-			unitGroup = data.unitGroup
+		if type(data) == "table" and data.classGroup then
+			classGroups = data.classGroup
+			sectionGroups = sectionGroups or defaultSectionGroups
 			budgetFraction = data.budgetFraction or budgetFraction
 			multiRandomise = data.multiRandomise or multiRandomise
 			minUnits = data.minUnits or minUnits
 			wreckChance = data.wreckChance or wreckChance
 		elseif type(data) == "number" then
-			unitGroup = index
+			classGroups = index
 			budgetFraction = data or 1
 		else
 			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
-		Spring.Echo(unitGroup)
-		if UnitDefNames[unitGroup] then
-			local count = math.floor(budgetToSpend/Spring.Utilities.GetUnitCost(nil,UnitDefNames[unitGroup].id))
+		--Spring.Utilities.TableEcho(classGroups)
+		--A specific unitDefName is supplied
+		if UnitDefNames[classGroups] then
+			local count = math.floor(budgetToSpend/Spring.Utilities.GetUnitCost(nil,UnitDefNames[classGroups].id))
 			if count < minUnits then
 				count = minUnits
 			end
 			if count > 0 then
-				typeComposition = {{unitDefName = unitGroup, unitCount = count}}
+				typeComposition = {{unitDefName = classGroups, unitCount = count}}
 			else
 				typeComposition = {}
 			end
 			--Spring.Utilities.TableEcho(typeComposition)
 		else
-			typeComposition,excessBudget,unitCount = GetRandomUnitsFromListForCost(budgetToSpend,typeList[unitGroup],multiRandomise)
+		-- a grouping is supplied
+			if type(classGroups) ~= table then
+				classGroups = {classGroups}
+			end
+			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups)
+		--TODO customisability is iffy with this...
+			typeComposition,excessBudget,unitCount = GetRandomUnitsFromDefListForCost(budgetToSpend,selectedUnitDefList,multiRandomise)
 			if unitCount < minUnits then
 				local unitsToMin = minUnits - unitCount
-				local minUnitComposition = GetRandomUnitsFromTypeListByCount(unitsToMin,typeList[unitGroup],multiRandomise)
+				local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
 				typeComposition = AddUnitLists({minUnitComposition,typeComposition})
 			end
 		end
@@ -319,7 +363,7 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     elseif (budget >= 7500) then
         return compositionType.ludicrousCost[math.random(#compositionType.ludicrousCost)]
     end
-    return {assaults = 1}
+    return {assault = 1}
 end
 ]]
 
@@ -327,14 +371,14 @@ end
 local function spawningTest()
 	local spawnList = {}
 	-- For Cost test
-	local riots = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.riots)
+	local riot = GetRandomUnitsFromDefListForCost(2000,classGroupings.riot)
 	-- for cost test, with multirandom
-	local assaults = GG.UnitSpawnerGetRandomUnitsFromListForCost(2000,allUnitGroups.assaults,true)
+	local assault = GetRandomUnitsFromDefListForCost(2000,classGroupings.assault,true)
 	
 	-- count test
-	local raiders = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.raiders)
+	local raider = GetRandomUnitsFromDefListByCount(3,classGroupings.raider)
 	-- count test, with multirandom
-	local skirmishers = GG.UnitSpawnerGetRandomUnitsFromListByCount(3,allUnitGroups.skirmishers,true)
+	local skirm = GetRandomUnitsFromDefListByCount(3,classGroupings.skirm,true)
 	
 	-- direct insert test
 	local dante = {striderdante = 1,athena = 2}
@@ -343,7 +387,7 @@ local function spawningTest()
 		{unitDefName = [[vehaa]], unitCount = 3, wreckChance = 0.5, spacing = 1000}, -- spacing accounts for future spawns, so order does matter sorta
 		{unitDefName = [[spideraa]], unitCount = 3, wreckChance = 1, spacing = 1}
 	}
-	spawnList = GG.UnitSpawnerAddUnitLists({raiders,riots,skirmishers,assaults,dante,aa})
+	spawnList = GG.UnitSpawnerAddUnitLists({raider,riot,skirm,assault,dante,aa})
 
 	--GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
@@ -358,12 +402,12 @@ end
 
 local function CompositionBuilderTest()
 	local spawnList = GG.UnitSpawnerCompositionBuilder(
-	2000,
+	3000,
 		{
-			{unitGroup = "pwGreebles", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
-			assaults = 1,
-			skirmishers = 1,
-			turretsLight = 1,
+			{classGroup = "ecoLight", budgetFraction = 0, minUnits = 2, multiRandomise = true, wreckChance = 1},
+			assault = 1,
+			skirm = 1,
+			turretLight = 1,
 			energypylon = 1
 		}
 	)
@@ -373,6 +417,10 @@ end
 function gadget:GameStart()
 	Y_OFFSET = 20 -- The offset seems in flavour for drops, though is silly for pregame wrecks and structures
 	
+	--local test = GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNames,{"skirm"},{"baseGame","extraUnits"})
+	--Spring.Utilities.TableEcho(test)
+	
+	--Spring.Utilities.TableEcho(taggedUnitDefNames)
 	--Spring.Echo("spawningTest")
 	--spawningTest()
 	--Spring.Echo("compositionTest")
@@ -382,7 +430,7 @@ end
 
 GG.UnitSpawnerAddUnitLists = AddUnitLists
 --GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
-GG.UnitSpawnerGetRandomUnitsFromListForCost = GetRandomUnitsFromListForCost
-GG.UnitSpawnerGetRandomUnitsFromTypeListByCount = GetRandomUnitsFromTypeListByCount
+GG.GetRandomUnitsFromDefListForCost = GetRandomUnitsFromDefListForCost
+GG.UnitSpawnerGetRandomUnitsFromDefListByCount = GetRandomUnitsFromDefListByCount
 GG.UnitSpawnerCompositionBuilder = CompositionBuilder
 GG.UnitSpawnerQueueListSpawn = QueueListSpawn

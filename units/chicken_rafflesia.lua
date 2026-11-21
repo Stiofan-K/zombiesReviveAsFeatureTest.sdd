@@ -7,7 +7,7 @@ return { chicken_rafflesia = {
   category                      = [[SINK]],
 
   customParams                  = {
-    unit_class_tags = {"chicken","staticSupport"},
+    unit_class_tags = {sectiontags = "extraChickens", classtags = "staticSupport"},
     shield_emit_offset = -4,
     normaltex = [[unittextures/chicken_rafflesia_normals.dds]],
   },

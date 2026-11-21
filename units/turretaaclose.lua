@@ -14,7 +14,7 @@ return { turretaaclose = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
-    unit_class_tags = {"baseGame","turretAALight"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="turretAALight"},
     bait_level_default = 1,
     aim_lookahead      = 120,
     okp_damage         = 700.1,

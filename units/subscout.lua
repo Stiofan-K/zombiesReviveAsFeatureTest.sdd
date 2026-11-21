@@ -15,7 +15,7 @@ return { subscout = {
   collisionVolumeType    = [[cylZ]],
 
   customParams          = {
-    unit_class_tags = {"extraUnits","scout","antiSub"},
+    unit_class_tags = {sectiontags = "extraUnits", classtags ={"scout","bomb","antiSub"}},
     fireproof = [[1]],
     turnatfullspeed = [[1]],
   },
@@ -45,7 +45,15 @@ return { subscout = {
   waterline             = 15,
   workerTime            = 0,
 
-    weaponDefs = {
+  weapons                = {
+    {
+      def                = [[SUBSCOUT_DEATH]],
+      badTargetCategory  = [[UNARMED]],
+      onlyTargetCategory = [[FIXEDWING LAND SINK TURRET SHIP SWIM FLOAT GUNSHIP HOVER]],
+    },
+  },
+
+  weaponDefs = {
         SUBSCOUT_DEATH = {
             name                    = [[Super Torpedo]],
             areaofeffect            = 256,
@@ -57,7 +65,7 @@ return { subscout = {
             impulseboost            = 0,
             impulsefactor           = 0,
             interceptedbyshieldtype = 1,
-            range                   = 200,
+            range                   = 100,
             reloadtime              = 3.6,
             soundhit                = [[explosion/mini_nuke]],
             turret                  = 1,

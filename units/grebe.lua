@@ -12,7 +12,7 @@ return { grebe = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_class_tags = {"extraUnits","raider"},
+    unit_class_tags = {sectiontags = "extraUnits", classtags ="raider"},
   },
 
   explodeAs              = [[BIG_UNITEX]],

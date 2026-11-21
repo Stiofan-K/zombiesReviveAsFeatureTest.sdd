@@ -18,7 +18,7 @@ return { planelightscout = {
   cruiseAltitude      = 220,
 
   customParams        = {
-    unit_class_tags = {"baseGame","scout","jammer","support"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ={"scout","jammer","support"}},
     bait_level_target      = 2,
 
     boost_speed_mult = 5,

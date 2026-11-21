@@ -16,7 +16,7 @@ return { hoverheavyraid = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_class_tags = {"baseGame","raider"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="raider"},
     modelradius       = [[25]],
     selection_scale   = 0.85,
     aim_lookahead     = 120,

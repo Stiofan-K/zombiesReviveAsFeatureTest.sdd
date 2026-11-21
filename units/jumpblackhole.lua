@@ -15,7 +15,7 @@ return { jumpblackhole = {
   corpse                = [[DEAD]],
 
   customParams          = {
-    unit_class_tags = {"baseGame","riot","support"}, --Placeholder seems to fit okay into support
+    unit_class_tags = {sectiontags = "baseGame", classtags ={"riot","support"}}, --Placeholder seems to fit okay into support
     aim_lookahead      = 80,
     bait_level_default = 0,
     can_target_allies  = 1,

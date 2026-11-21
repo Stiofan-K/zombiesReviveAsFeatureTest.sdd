@@ -192,7 +192,7 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     elseif (budget >= 7500) then
         return compositionType.ludicrousCost[math.random(#compositionType.ludicrousCost)]
     end
-    return {assaults = 1}
+    return {assault = 1}
 end
 
 local function GetMixedComposition(staticValue,mobileValue)
@@ -393,10 +393,10 @@ end
 
 function gadget:GameStart()
 	
+	--[[
 	local testCount, testValue = GuesstimateCampCountAndValueByMapSize(mapSizeX,mapSizeZ)
 	Spring.Echo("CampCount = "..testCount)
 	Spring.Echo("CampStaticValue = "..testValue-testValue*startingNeutralMobileRatio)
 	Spring.Echo("CampMobileValue = "..testValue*startingNeutralMobileRatio)
-	
-
+	]]
 end

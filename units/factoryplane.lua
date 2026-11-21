@@ -36,7 +36,7 @@ return { factoryplane = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
-    unit_class_tags = {"baseGame","factory"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="factory"},
     ploppable = 1,
     pad_count = 1,
     landflystate   = [[0]],

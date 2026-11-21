@@ -34,7 +34,7 @@ return { factoryjump = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
-    unit_class_tags = {"baseGame","factory"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="factory"},
     ploppable = 1,
     aimposoffset   = [[0 0 -28]],
     midposoffset   = [[0 0 -10]],

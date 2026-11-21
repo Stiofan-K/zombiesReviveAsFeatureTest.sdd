@@ -19,7 +19,7 @@ return { planesupport = {
   cruiseAltitude         = 175,
 
   customParams        = {
-    unit_class_tags = {"baseGame","bomberLight"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="bomberLight"},
     reammoseconds        = [[5]],
     shots_per_refuel     = [[12]],
     refuelturnradius     = [[90]],

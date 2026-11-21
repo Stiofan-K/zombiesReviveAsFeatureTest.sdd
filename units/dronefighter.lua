@@ -19,7 +19,7 @@ return { dronefighter = {
   canLand                = false,
 
   customParams           = {
-    unit_class_tags = {"baseGame","drone"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="drone"},
     bait_level_target      = 1,
     modelradius    = [[5]],
     refuelturnradius = [[80]],

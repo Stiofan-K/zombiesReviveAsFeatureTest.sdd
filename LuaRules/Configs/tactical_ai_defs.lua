@@ -2133,12 +2133,12 @@ local behaviourConfig = {
 	
 	-- Extra Units!
 	{
-		name = "hoverminer", --veharty copy
+		name = "hoverminer",
 		skirms = allMobileGround,
 		skirmRadar = true,
 		--swarms = {},
 		--flees = {},
-		skirmLeeway = 20,
+		skirmLeeway = -150,
 		skirmOrderDis = 200,
 		skirmOrderDisMin = 100, -- Make it turn around.
 		

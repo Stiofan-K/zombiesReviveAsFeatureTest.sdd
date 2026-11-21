@@ -18,7 +18,7 @@ return { planescout = {
   cruiseAltitude      = 250,
 
   customParams        = {
-    unit_class_tags = {"baseGame","scout","support"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ={"scout","support"}},
     modelradius       = [[20]],
     --specialreloadtime = [[600]],
     refuelturnradius  = [[120]],

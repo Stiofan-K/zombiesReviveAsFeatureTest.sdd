@@ -16,7 +16,7 @@ return { hoverraid = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_class_tags = {"baseGame","raid","antiSub"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ={"raider","antiSub"}},
     modelradius        = [[25]],
     aim_lookahead      = 120,
     bait_level_default = 0,

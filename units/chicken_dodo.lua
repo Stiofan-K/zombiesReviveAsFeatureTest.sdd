@@ -12,7 +12,7 @@ return { chicken_dodo = {
   category              = [[LAND SINK]],
 
   customParams          = {
-    unit_class_tags = {"chicken","bomb"}
+    unit_class_tags = {sectiontags = "chickens", classtags = "bomb"}
   },
 
   explodeAs             = [[DODO_DEATH]],

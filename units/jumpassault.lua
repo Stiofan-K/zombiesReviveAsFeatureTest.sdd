@@ -12,7 +12,7 @@ return { jumpassault = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_class_tags = {"baseGame","assault"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="assault"},
     canjump            = 1,
     jump_range         = 400,
     jump_speed         = 4,

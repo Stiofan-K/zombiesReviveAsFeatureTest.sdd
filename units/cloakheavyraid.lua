@@ -19,7 +19,7 @@ return { cloakheavyraid = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_class_tags = {"baseGame","raider"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="raider"},
     modelradius    = [[14]],
     cus_noflashlight = 1,
     outline_x = 120,

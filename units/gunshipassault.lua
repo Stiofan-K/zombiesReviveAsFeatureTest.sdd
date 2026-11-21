@@ -19,7 +19,7 @@ return { gunshipassault = {
   cruiseAltitude      = 135,
 
   customParams        = {
-    unit_class_tags = {"baseGame","gunship"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="gunship"},
     bait_level_default = 1,
     airstrafecontrol = [[1]],
     modelradius    = [[10]],

@@ -24,7 +24,7 @@ return { staticrearm = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_class_tags = {"baseGame","staticSupport"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="staticSupport"},
     pad_count = 4,
     nobuildpower   = 1,
     notreallyafactory = 1,

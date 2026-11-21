@@ -15,7 +15,7 @@ return { hoverskirm2 = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_class_tags = {"extraUnits","assault","riot"}, --Hoverskirm 2 eh
+    unit_class_tags = {sectiontags = "extraUnits", classtags ={"assault","riot"}}, --Hoverskirm 2 eh
     modelradius    = [[25]],
     turnatfullspeed_hover = [[1]],
   },

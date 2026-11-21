@@ -25,7 +25,7 @@ return { striderfunnelweb = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_class_tags = {"baseGame","striderMedium"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="striderMedium"},
     modelradius    = [[50]],
     priority_misc  = 1, -- Medium
     shield_emit_height = 45,

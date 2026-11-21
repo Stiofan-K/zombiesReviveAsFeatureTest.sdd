@@ -12,7 +12,7 @@ return { chicken_drone = {
   category            = [[LAND UNARMED]],
 
   customParams        = {
-  unit_class_tags = {"chicken","constructor"},
+  unit_class_tags = {sectiontags = "extraChickens", classtags = "constructor"},
 	morphto_1 = "chickend",
 	morphtime_1 = 20,
 	morphcost_1 = 15,

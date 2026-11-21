@@ -18,7 +18,7 @@ return { amphassault = {
   corpse              = [[DEAD]],
 
   customParams        = {
-    unit_classification = {"baseGame","striderDemi"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="striderDemi"},
     aim_lookahead      = 50,
     bait_level_default = 1,
     amph_regen = 40,

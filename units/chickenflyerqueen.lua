@@ -18,7 +18,7 @@ return { chickenflyerqueen = {
   cruiseAltitude      = 150,
 
   customParams        = {
-    unit_class_tags = {"chicken","striderHeavy"},  --unsure if it makes sense for chicken queen
+    unit_class_tags = {sectiontags = "chickens", classtags = "striderHeavy"},  --unsure if it makes sense for chicken queen
     statsname = "chickenlandqueen",
 
     outline_x = 400,

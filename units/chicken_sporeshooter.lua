@@ -12,7 +12,7 @@ return { chicken_sporeshooter = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {"chicken","skimrishers","antiAir"},
+    unit_class_tags = {sectiontags = "chickens", classtags = {"skimrishers","antiAir"}},
     outline_x = 130,
     outline_y = 130,
     outline_yoff = 30,

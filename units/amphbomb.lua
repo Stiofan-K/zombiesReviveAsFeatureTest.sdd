@@ -18,7 +18,7 @@ return { amphbomb = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_classification = {"baseGame","bomb"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="bomb"},
     amph_regen = 10,
     amph_submerged_at = 30,
     midposoffset   = [[0 5 0]],

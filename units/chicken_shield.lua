@@ -12,7 +12,7 @@ return { chicken_shield = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {"chicken","support","shield"}, --shield may be uncessecary
+    unit_class_tags = {sectiontags = "chickens", classtags = {"support","shield"}}, --shield may be uncessecary
     shield_emit_height = 26,
     shield_emit_offset = 0,
 
