@@ -12,7 +12,7 @@ return { chickenc = {
   category            = [[LAND SINK]],
 
   customParams        = {
-    unit_class_tags = {sectiontags = "chickens", classtags = "riot"},
+    unit_class_tags = {sectiontags = "chickens", classtags = {"riot","skirm","antiSub"}},
     outline_x = 130,
     outline_y = 130,
     outline_yoff = 30,

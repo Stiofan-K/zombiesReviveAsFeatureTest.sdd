@@ -1151,17 +1151,6 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		step    = 1,
 	},
   {
-		key     = "starting_neutral_mobile",
-		name    = "Neutral Starting Camps Mobile Ratio",
-		desc    = "Ratio of Camp budget going into mobile units.",
-		section = 'mapsettings',
-    type    = 'number',
-		def     = 0.3,
-		min     = 0,
-		max     = 1,
-		step    = 0.001,
-	},
-  {
 		key     = "starting_neutral_wrecks_ratio",
 		name    = "Neutral Starting extra wrecks",
 		desc    = "Fraction of Camp budget added as extra wrecks to neutral camps.",

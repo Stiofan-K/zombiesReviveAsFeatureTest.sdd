@@ -13,7 +13,7 @@ return { chickenwurm = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {sectiontags = "chickens", classtags = {"riot","assault"}},-- something is off about Wurm having a different cloak implementation, but if it aint broken why fix it. I'll check for stealth too when grouping.
+    unit_class_tags = {sectiontags = "chickens", classtags = {"riot","assault","antiSub"}},-- something is off about Wurm having a different cloak implementation, but if it aint broken why fix it. I'll check for stealth too when grouping.
     fireproof         = 1,
 
     outline_x = 160,

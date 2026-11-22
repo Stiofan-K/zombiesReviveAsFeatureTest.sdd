@@ -30,7 +30,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local classGroupings, sectionGroupings, taggedUnitDefNames , taggedUnitDefIDs = VFS.Include("LuaRules/Configs/unit_class_groupings.lua")
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local SPACING_MIN = 0
-local SPACING_MAX = 64
+local SPACING_MAX = 96
 local Y_OFFSET = 0
 
 --Utilities
@@ -79,9 +79,9 @@ local function GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNameTable,cl
 		if not classGroups or CheckTagAndGroupMatch(unitDefTags.classTags,classGroups) then
 			if not sectionGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,sectionGroups) then
 				if not moveGroups or 
-				unitDefTags.movementTags == "static" or 
-				unitDefTags.movementTags == "air" or 
+				unitDefTags.movementTags[1] == "static" or 
 				-- this ends up with mostly BW in bombs as an issue maybe, other gs and planes are not bound to normal roles, they are too finiky for that
+				unitDefTags.movementTags[1] == "air" or 
 				CheckTagAndGroupMatch(unitDefTags.movementTags,moveGroups) then
 					if not returnUnitList then
 						returnUnitList = {unitDefName}
@@ -206,6 +206,9 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 	if not sectionGroups then
 		sectionGroups = {"baseGame","extraUnits"}
 	end
+	if not movementGroups then
+		movementGroups = {"veh","bot","amph","hover","spider"}
+	end
 	if not customTaggedUnitDefNames then --if wished one can modify the base configs somewhere and supply them again.
 		customTaggedUnitDefNames = taggedUnitDefNames
 	end
@@ -231,7 +234,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		local classGroups = nil
 		local sectionGroups = sectionGroups
 		local budgetFraction = 1
-		local multiRandomise = math.random() < 0.5
+		local multiRandomise = true --math.random() < 0.3
 		local minUnits = 0
 		local wreckChance = 0
 		local unitCount
@@ -248,6 +251,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		else
 			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
+		--there is likely a more satisfying way to do the excess?
 		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
 		--Spring.Utilities.TableEcho(classGroups)
 		--A specific unitDefName is supplied
@@ -268,9 +272,9 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 				classGroups = {classGroups}
 			end
 			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups,movementGroups)
-			Spring.Utilities.TableEcho(selectedUnitDefList)
+			--Spring.Utilities.TableEcho(selectedUnitDefList)
 			typeComposition,excessBudget,unitCount = GetRandomUnitsFromDefListForCost(budgetToSpend,selectedUnitDefList,multiRandomise)
-			Spring.Utilities.TableEcho(typeComposition)
+			--Spring.Utilities.TableEcho(typeComposition)
 			if unitCount < minUnits then
 				local unitsToMin = minUnits - unitCount
 				local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
@@ -437,7 +441,7 @@ function gadget:GameStart()
 	--Spring.Utilities.TableEcho(test)
 	
 	--local staticUnits, movetypeDefID, movetypes = VFS.Include("LuaRules/Configs/CAI/unitMovetype.lua")
-	--Spring.Utilities.TableEcho(staticUnits)
+	--Spring.Utilities.TableEcho(movetypeDefID)
 	
 	--Spring.Utilities.TableEcho(taggedUnitDefNames)
 	--Spring.Echo("spawningTest")
