@@ -23,8 +23,8 @@ end
 --------------------------------------------------------------------------------
 
 
-local MAP_AREA_TO_CAMP_RATIO = 40
-local MAP_AREA_TO_VALUE_MULT = 25
+local MAP_AREA_TO_CAMP_RATIO = 45
+local MAP_AREA_TO_VALUE_MULT = 20
 local AUTO_MAP_VALUE_OFFSET = -200
 local AUTO_WRECK_COUNT_MULT = 1.5
 local AUTO_WRECK_VALUE_MULT = 0.7
@@ -477,7 +477,7 @@ end
 function gadget:Initialize()
 	maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n")
 	
-	
+	SetupNeutralAndWreckSpawn()
 end
 
 function gadget:GameStart()
@@ -491,6 +491,4 @@ function gadget:GameStart()
 	local count,value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
 	Spring.Echo("CampCount = "..count)
 	Spring.Echo("CampValue = "..value)
-
-	SetupNeutralAndWreckSpawn()
 end

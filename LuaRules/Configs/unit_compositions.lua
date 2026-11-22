@@ -69,7 +69,7 @@ local allCompositions = {
             {antiSub = 1, artillery = 1,raider = 1},
             {gunship = 1,skirm = 1},
             {bomberLight = 1,raider = 1},
-            {striderDemi = 1,antiAir = 1},
+            {striderDemi = 1,antiAir = 0.5,raider=0.5},
             {riot = 1, transport = 0.5,},
             {antiHeavy = 1,raider = 1},
             {aerialAA = 1, raider = 0.5}
