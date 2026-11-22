@@ -12,7 +12,7 @@ return { chickenblobber = {
   category            = [[LAND]],
 
   customParams        = {
-    unit_class_tags = {sectiontags = "chickens", classtags = {"artillery","striderDemi","striderMedium"}},
+    unit_class_tags = {sectiontags = "chickens", classtags = {"artillery","striderMedium"}},
   },
 
   explodeAs           = [[NOWEAPON]],
@@ -26,7 +26,7 @@ return { chickenblobber = {
   leaveTracks         = true,
   maxSlope            = 36,
   maxWaterDepth       = 5000,
-  metalCost           = 1200,
+  metalCost           = 2400,
   movementClass       = [[BHOVER3]],
   noAutoFire          = false,
   noChaseCategory     = [[TERRAFORM FIXEDWING SATELLITE GUNSHIP SUB MOBILE STUPIDTARGET MINE]],

@@ -54,6 +54,7 @@ local structureConfig = {
 		unitDef.footprintz = 4
 		unitDef.metalcost = 5000
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
 		unitDef.customparams.soundselect = "cloaker_select"
 
 		unitDef.collisionvolumescales = [[60 70 60]]
@@ -74,6 +75,7 @@ local structureConfig = {
 		unitDef.footprintz = 16
 		unitDef.metalcost = 1200
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="factory"}]]
 		unitDef.customparams.soundselect = "building_select1"
 
 		unitDef.collisionvolumescales = [[275 120 215]]
@@ -105,6 +107,7 @@ local structureConfig = {
 		unitDef.footprintz = 11
 		unitDef.metalcost = 1500
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="factory"}]]
 		unitDef.customparams.soundselect = "building_select1"
 
 		unitDef.collisionvolumescales = [[240 160 120]]
@@ -134,6 +137,7 @@ local structureConfig = {
 		unitDef.icontype = [[pw_energy]]
 
 		unitDef.customparams = unitDef.customparams or {}
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
 		unitDef.customparams.pylonrange = 300
 		unitDef.customparams.removewait = 1
 		unitDef.energymake = 4
@@ -157,6 +161,7 @@ local structureConfig = {
 		unitDef.script = "pw_mine.lua"
 
 		unitDef.customparams = unitDef.customparams or {}
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
 		unitDef.customparams.pylonrange = 400
 		unitDef.customparams.removewait = 1
 		unitDef.energymake = 6
@@ -188,6 +193,7 @@ local structureConfig = {
 		unitDef.icontype = [[pw_energy2]]
 
 		unitDef.customparams = unitDef.customparams or {}
+		--unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]] Looks the same as Ancient fab, which is a more fitting thing
 		unitDef.customparams.pylonrange = 500
 		unitDef.customparams.removewait = 1
 		unitDef.energymake = 8
@@ -221,6 +227,7 @@ local structureConfig = {
 		unitDef.footprintz = 6
 		unitDef.metalcost = 600
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"turretSkirm","turretHeavy"}}]] -- unsure if this is a fitting category
 		unitDef.customparams.soundselect = "factory_select"
 
 		unitDef.weapondefs = {bogus_fake_targeter = CopyTable(fakeWeapondef, true)}
@@ -243,6 +250,7 @@ local structureConfig = {
 		unitDef.footprintz = 6
 		unitDef.metalcost = 800
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"staticStrategic","staticSupport"}}]]
 		unitDef.customparams.soundselect = "radar_select"
 
 		unitDef.customparams.outline_x = 260
@@ -276,6 +284,7 @@ local structureConfig = {
 		unitDef.canattack = true
 		unitDef.sightdistance = 495
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"staticStrategic","turretHeavy"}}]]
 		unitDef.customparams.soundselect = "turret_select"
 
 		unitDef.weapondefs = {bogus_fake_targeter = CopyTable(fakeWeapondef, true)}
@@ -301,6 +310,7 @@ local structureConfig = {
 
 		unitDef.customparams.evacuation_speed = "1" -- 10 minutes
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"greeble"}}]]-- unsure...
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[40 45 40]]
@@ -343,6 +353,7 @@ local structureConfig = {
 		unitDef.footprintz = 9
 		unitDef.metalcost = 2000
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]]-- unsure... but a greeble category seems alright
 		unitDef.customparams.soundselect = "cloaker_select"
 
 		unitDef.featuredefs.dead.object = "pw_techlab_dead.dae"
@@ -363,6 +374,7 @@ local structureConfig = {
 		unitDef.explodeas = "GRAV_BLAST"
 		unitDef.selfdestructas = "GRAV_BLAST"
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"staticStrategic","staticSupport"}}]]
 		unitDef.customparams.soundselect = "radar_select"
 
 		unitDef.customparams.area_cloak = 1
@@ -391,6 +403,7 @@ local structureConfig = {
 		unitDef.footprintz = 5
 		unitDef.metalcost = 1000
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[80 25 60]]
@@ -412,6 +425,7 @@ local structureConfig = {
 		unitDef.metalstorage = 100000
 		unitDef.energystorage = 0
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[80 25 60]]
@@ -451,6 +465,7 @@ local structureConfig = {
 		unitDef.script = "pw_mine3.lua"
 		unitDef.icontype = [[pw_metal]]
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoHeavy"}]]
 		unitDef.customparams = unitDef.customparams or {}
 		unitDef.customparams.removewait = 1
 		unitDef.metalmake = 10
@@ -482,6 +497,7 @@ local structureConfig = {
 		unitDef.buildpic = "pw_generic.png"
 
 		unitDef.customparams = unitDef.customparams or {}
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]] -- still unsure
 		unitDef.customparams.removewait = 1
 
 		unitDef.customparams.soundselect = "radar_select"

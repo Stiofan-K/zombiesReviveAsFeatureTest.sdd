@@ -413,8 +413,8 @@ local legacyGroups = {
         [[pw_dropfac]],
         [[pw_mine]],
         [[pw_mine2]],
-        [[pw_mine3]], --pw_metal looks the same and is more impactfull/fits its model better
-        -- [[pw_metal]] -- buuut its also too busted maybe...
+        --[[pw_mine3]] --pw_metal looks the same and is more impactfull/fits its model better
+        [[pw_metal]], -- buuut its also too busted maybe... actually, we ball!!
         [[pw_interception]],
         [[pw_warpjammer]],
         [[pw_storage]]

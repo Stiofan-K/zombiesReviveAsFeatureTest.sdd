@@ -204,7 +204,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 	local excessBudget = 0
 	--Spring.Echo(unitTypeAndRatio)
 	if not sectionGroups then
-		sectionGroups = {"baseGame","extraUnits"}
+		sectionGroups = {"baseGame","extraUnits","planetWars"}
 	end
 	if not movementGroups then
 		movementGroups = {"veh","bot","amph","hover","spider"}
@@ -234,7 +234,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		local classGroups = nil
 		local sectionGroups = sectionGroups
 		local budgetFraction = 1
-		local multiRandomise = true --math.random() < 0.3
+		local multiRandomise = math.random() > 0.3
 		local minUnits = 0
 		local wreckChance = 0
 		local unitCount

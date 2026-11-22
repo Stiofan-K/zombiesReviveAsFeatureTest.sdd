@@ -152,7 +152,8 @@ end
 
 local function CheckLavaAndRoughTerrain(x,z)
 	local height = Spring.GetGroundHeight(x, z)
-	if (WATER_DAMAGE and height <= 0) or Spring.TestBuildOrder(AREA_CHECK_ID, x, 0 ,z, 0) == 0 then
+	if (WATER_DAMAGE and height <= 0) or 
+	(Spring.TestBuildOrder(AREA_CHECK_ID, x, 0 ,z, 0) == 0 and Spring.TestBuildOrder(UnitDefNames["staticmex"].id, x, 0 ,z, 0) == 0) then
 		return true
 	end
 	return false
@@ -206,6 +207,9 @@ local function GuesstimateCampCountAndValueByMapArea(mapArea)
 	--LETS START GUESSTIMATING!!!
 	
 	--TODO this system could use improvement
+	-- Log scale assements, maybe mex income additionals
+	-- only value, then should randomise into what sort of split of camps works. Large medium small, massive etcetc.
+	
 	-- count...
 	-- smallest maps are 8x8 so area 64 -- count can be 1-2, uneven camps are bigger and centered
 	-- some medium small maps are 10x12 so 120 -could stomach 2-3?
@@ -276,7 +280,10 @@ end
 
 local function PatrolCampUnits(x,z,unitIDs)
 	for unitID, _ in pairs(unitIDs) do
+		
 		--TODO we can do some extra filtering of behavior based on unit types
+		--TODO keep imp and snitch stationary
+		--TODO give factories zombie commands to print stuff
 		Spring.GiveOrderToUnit(unitID,CMD.PATROL,{x + math.random(-100,100),0,z + math.random(-100,100)})
 	end
 end

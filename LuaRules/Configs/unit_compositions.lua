@@ -2,6 +2,9 @@
 -- bundled in a config file for ease of access and cross gadget sharing
 
 
+--TODO Compositions for neutrals or anything else really should come with a certain weakness to exploit
+
+
 local allCompositions = {
     -- Get your static composition today! 
     staticCompositions = {
