@@ -1101,7 +1101,7 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
 		desc    = "The ratio of map area to generated camp number. There is slight randomisation to keep things fresh.",
 		section = 'mapsettings',
     type    = 'number',
-		def     = 45,
+		def     = 70,
 		min     = 0,
 		max     = 1000,
 		step    = 1,

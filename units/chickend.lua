@@ -16,7 +16,6 @@ return { chickend = {
 
   energyMake                    = 2,
   explodeAs                     = [[NOWEAPON]],
-  floater                       = true,
   footprintX                    = 3,
   footprintZ                    = 3,
   health                        = 500,
@@ -25,7 +24,6 @@ return { chickend = {
   idleTime                      = 300,
   levelGround                   = false,
   maxSlope                      = 36,
-  maxWaterDepth                 = 20,
   metalCost                     = 120,
   noAutoFire                    = false,
   noChaseCategory               = [[FIXEDWING LAND SHIP SATELLITE SWIM GUNSHIP SUB HOVER]],

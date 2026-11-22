@@ -127,8 +127,8 @@ end
 
 local function GetRandomUnitsFromDefListForCost(budget,unitDefNameList,multiRandomise)
 	if not unitDefNameList then
-		Spring.Echo("unitDefName ended up empty")
-		Spring.Echo(unitDefNameList)
+		--Spring.Echo("unitDefName ended up empty")
+		--Spring.Echo(unitDefNameList)
 		return {},budget,0
 	end
 	local unitDefArrayKeys = {}
@@ -269,7 +269,10 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		else
 		-- a grouping is supplied
 			if type(classGroups) ~= table then
+				--Spring.Echo(classGroups)
+				--Spring.Echo(budgetFraction)
 				classGroups = {classGroups}
+				--Spring.Utilities.TableEcho(classGroups)
 			end
 			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups,movementGroups)
 			--Spring.Utilities.TableEcho(selectedUnitDefList)
@@ -341,7 +344,6 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 				Spring.Echo("Search for spawnpoint failed")
 			end
 			if unitID then
-				spawnedUnits[unitID] = true
 				timeToGroundOffset = timeToGroundOffset + 5
 				local localSpacing = spacing
 				if not localSpacing then
@@ -431,7 +433,9 @@ local function CompositionBuilderTest()
 			--energypylon = 1
 		},{"baseGame","extraUnits"},{"veh","bot","hover"}
 	)
-	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
+	local x,z = math.random(1,mapSizeX),math.random(1,mapSizeZ)
+	GG.UnitSpawnerQueueListSpawn(spawnList,x,z,GaiaTeamID)
+	Spring.MarkerAddPoint(x, 0, z, "TEST!")
 end
 
 function gadget:GameStart()

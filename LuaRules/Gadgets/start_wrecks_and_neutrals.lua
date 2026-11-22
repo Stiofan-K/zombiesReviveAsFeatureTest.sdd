@@ -23,14 +23,15 @@ end
 --------------------------------------------------------------------------------
 
 
-local MAP_AREA_TO_CAMP_RATIO = 45
-local MAP_AREA_TO_VALUE_MULT = 15
+local MAP_AREA_TO_CAMP_RATIO = 40
+local MAP_AREA_TO_VALUE_MULT = 25
 local AUTO_MAP_VALUE_OFFSET = -200
 local AUTO_WRECK_COUNT_MULT = 1.5
 local AUTO_WRECK_VALUE_MULT = 0.7
 
 local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.8
-local NEUTRAL_MOBILE_RATIO = 0.3
+local NEUTRAL_MOBILE_MIN = 30
+local NEUTRAL_MOBILE_MAX = 70
 local NEUTRAL_EDGE_OFFSET = 500
 local CENTER_CAMP_MULT = 3
 
@@ -49,7 +50,7 @@ local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
 
 --lets not use this for now
-local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
+--local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
 local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks_ratio) or NEUTRAL_ADDITIONAL_WRECK_RATIO
 
 local GaiaTeamID     = Spring.GetGaiaTeamID()
@@ -203,6 +204,8 @@ end
 --could maybe be improved with mex analysis
 local function GuesstimateCampCountAndValueByMapArea(mapArea)
 	--LETS START GUESSTIMATING!!!
+	
+	--TODO this system could use improvement
 	-- count...
 	-- smallest maps are 8x8 so area 64 -- count can be 1-2, uneven camps are bigger and centered
 	-- some medium small maps are 10x12 so 120 -could stomach 2-3?
@@ -251,7 +254,7 @@ local function GetMixedComposition(staticValue,mobileValue,sectionGroups,moveGro
 	local mobileUnitComposition = GG.UnitSpawnerCompositionBuilder(mobileValue,mobileComposition,sectionGroups,moveGroups)
 	local staticComposition = GetGroupCompositionByBudgetAndType(staticValue,staticCompositions)
 	local staticUnitComposition = GG.UnitSpawnerCompositionBuilder(staticValue,staticComposition,sectionGroups,moveGroups)
-	return GG.UnitSpawnerAddUnitLists({mobileUnitComposition,staticUnitComposition})
+	return GG.UnitSpawnerAddUnitLists({staticUnitComposition,mobileUnitComposition})
 end
 
 
@@ -269,6 +272,13 @@ local function SetupUnitComposition(campValue,mobileRatio,sectionGroups,moveGrou
 		unitComposition = GetMixedComposition(staticBudget,mobileBudget,sectionGroups,moveGroups)
 	end
 	return unitComposition
+end
+
+local function PatrolCampUnits(x,z,unitIDs)
+	for unitID, _ in pairs(unitIDs) do
+		--TODO we can do some extra filtering of behavior based on unit types
+		Spring.GiveOrderToUnit(unitID,CMD.PATROL,{x + math.random(-100,100),0,z + math.random(-100,100)})
+	end
 end
 
 local function GetCampSpawnPairPositions(ignoreStartbox)
@@ -326,39 +336,45 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 	end
 	--Spring.Echo("Start neutrals")
 	--Spring.Utilities.TableEcho(unitComposition)
-	
+	local unitIDs1Pod = nil
+	local unitIDs2Pod = nil
 	local teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
-	unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,localNoGoZones)
+	unitIDs1Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,localNoGoZones)
+	PatrolCampUnits(x,z,unitIDs1Pod)
 	Spring.MarkerAddPoint(x, 0, z, "Reports of Remnants") -- important as they arent visible globaly
+	
+	
 	teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
-	unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
+	unitIDs2Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
+	PatrolCampUnits(x2,z2,unitIDs2Pod)
+	
 	Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 end
 
-local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,mobileRatio,additionalWreckRatio)
+local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWreckRatio)
 	local unitIDs
 	local teamID = GaiaTeamID
 	local wreckBudget = 0
-
 	
+	local unitIDs
 	--uneven number results in big map center camp
 	if campCount % 2 == 1 then
 		campCount = campCount -1
 		local sectionGroups = nil
-		local thisMobileRatio = mobileRatio
-		if math.random() > 0.5 then
+		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
+		if math.random() > 0.3 then
 			sectionGroups = {"chickens","extraChickens"}
 			thisMobileRatio = 0.8
 		end
 		local height = Spring.GetGroundHeight(mapSizeX/2,mapSizeZ/2)
 		--if the middle is too rough, or a pond on an otherwise non water map, we make 2 camps instead
 		if CheckLavaAndRoughTerrain(mapSizeX/2,mapSizeZ/2) or (height < 0 and mapWaterRatio < 0.3) then
-			SpawnCampPair(campBudget*(CENTER_CAMP_MULT/1.5),sectionGroups,thisMobileRatio,additionalWreckRatio)
+			unitIDs = SpawnCampPair(campBudget*(CENTER_CAMP_MULT/1.5),sectionGroups,thisMobileRatio,additionalWreckRatio)
 		else			
-			local unitComposition = SetupUnitComposition(campBudget*CENTER_CAMP_MULT,mobileRatio,sectionGroups)
+			local unitComposition = SetupUnitComposition(campBudget*CENTER_CAMP_MULT,thisMobileRatio,sectionGroups)
 		--Spring.Utilities.TableEcho(unitComposition)
 		if wreckBudget > 0 then
-			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,mobileRatio)
+			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,math.random())
 			for index, value in ipairs(wreckComposition) do
 				value.wreckChance = 1
 				value.spacing = math.random(32,64)
@@ -367,18 +383,20 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,mobileRatio,
 		end
 			teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 			unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
+			PatrolCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
 			Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 		end
 	end
 	
 	for i = 1, campCount/2, 1 do
 		local sectionGroups = nil
-		local thisMobileRatio = mobileRatio
-		if math.random() > 0.5 then
+		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
+		Spring.Echo(thisMobileRatio)
+		if math.random() > 0.7 then
 			sectionGroups = {"chickens","extraChickens"}
 			thisMobileRatio = 0.8
 		end
-		SpawnCampPair(campBudget,sectionGroups,thisMobileRatio,additionalWreckRatio)
+		local theseUnitIDs = SpawnCampPair(campBudget,sectionGroups,thisMobileRatio,additionalWreckRatio)
 	end
 end
 
@@ -438,7 +456,7 @@ local function SetupNeutralAndWreckSpawn()
 		end
 	end
 	if neutralCount > 0 and neutralValue > 0 then
-		SpawnNeutralCamps(neutralCount,neutralValue,waterAreaRatio,startingNeutralMobileRatio,startingNeutralWreckRatio)
+		SpawnNeutralCamps(neutralCount,neutralValue,waterAreaRatio,startingNeutralWreckRatio)
 	end
 	
 	if autoWrecks ~= 0 then
@@ -459,7 +477,7 @@ end
 function gadget:Initialize()
 	maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n")
 	
-	SetupNeutralAndWreckSpawn()
+	
 end
 
 function gadget:GameStart()
@@ -473,7 +491,6 @@ function gadget:GameStart()
 	local count,value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
 	Spring.Echo("CampCount = "..count)
 	Spring.Echo("CampValue = "..value)
-	Spring.Echo("CampStaticValue = "..value-value*startingNeutralMobileRatio)
-	Spring.Echo("CampMobileValue = "..value*startingNeutralMobileRatio)
 
+	SetupNeutralAndWreckSpawn()
 end

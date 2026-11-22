@@ -37,7 +37,6 @@ return { roost = {
   },
   sightDistance     = 273,
   upright           = false,
-  waterline         = 0,
   workerTime        = 0,
   yardMap           = [[ooooooooo]],
 
