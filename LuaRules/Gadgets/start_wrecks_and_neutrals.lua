@@ -22,12 +22,33 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local WRECK_TO_UNIT_COST_MULT = 2.5 -- mult to get from wreck -> unit cost
 
+
+-- Parameters for usable area guestimation Params
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+local WATER_DAMAGE = (Game.waterDamage > 0)
+local MAP_SIZE_UNIT = 512 --Elmo to lobby mapsize
+
+local maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n") or 2 -- I had a todo that this didnt work but it does seem to?
+local STARTBOX_CIRCLE_CHECK_COUNT = 15
+local STARTBOX_CIRCLE_CHECK_RADIUS = 700
+
+local AREA_CHECK_ID = UnitDefNames["energyfusion"].id -- small profile and water buildable!
+local PLACEMENT_CHECK_ID = UnitDefNames["staticrearm"].id -- a lil bigger, but should be placable often
+
+-- Parameters and Modoptions factored into generation of units
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local MAP_AREA_TO_CAMP_RATIO = 45
 local MAP_AREA_TO_VALUE_MULT = 20
 local AUTO_MAP_VALUE_OFFSET = -200
 local AUTO_WRECK_COUNT_MULT = 1.5
 local AUTO_WRECK_VALUE_MULT = 0.7
+
+local WeWantSpice = true
 
 local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.8
 local NEUTRAL_MOBILE_MIN = 30
@@ -35,7 +56,7 @@ local NEUTRAL_MOBILE_MAX = 70
 local NEUTRAL_EDGE_OFFSET = 500
 local CENTER_CAMP_MULT = 3
 
-local WeWantSpice = true
+local MEX_SEARCH_RADIUS = MAP_SIZE_UNIT * 1200
 
 local modOptions = Spring.GetModOptions()
 local autoNeutrals = tonumber(modOptions.starting_auto_neutrals) or 0
@@ -53,13 +74,22 @@ local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
 --local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
 local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks_ratio) or NEUTRAL_ADDITIONAL_WRECK_RATIO
 
+-- Compositions and nogozones setup
+local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
+local mobileCompositions = allCompositions.mobileCompositions
+local staticCompositions = allCompositions.staticCompositions
+local mixedCompositions = allCompositions.mixedCompositions
+local mexAndGeoNoGoZones = GG.NoGoZonesGetMexAndGeoNoGoZones()
+local localNoGoZones = mexAndGeoNoGoZones
+
+local CHICKEN_SECTION_GROUPS = {"chickens","extraChickens"}
+
+
+-- Team setup
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local GaiaTeamID     = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
-local maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n") or 2 -- TODO this seems to have some issue. Startboxjutsu is not good enough
-local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-local WRECK_TO_UNIT_COST_MULT = 2.5 -- mult to get from wreck -> unit cost
-local WATER_DAMAGE = (Game.waterDamage > 0)
-
 local initalAllianceCount = -1 --subtract gaia
 for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 	local teamlist = Spring.GetTeamList(allyTeamID)
@@ -87,18 +117,6 @@ else -- anything else translates to gaia zombies
 	neutralAllyTeamID = GaiaAllyTeamID
 end
 
-local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
-local mobileCompositions = allCompositions.mobileCompositions
-local staticCompositions = allCompositions.staticCompositions
-local mixedCompositions = allCompositions.mixedCompositions
-local mexAndGeoNoGoZones = GG.NoGoZonesGetMexAndGeoNoGoZones()
-local localNoGoZones = mexAndGeoNoGoZones
-
-local MAP_SIZE_UNIT = 512 --Elmo to lobby mapsize
-local CIRCLE_CHECK_COUNT = 15
-local CIRCLE_CHECK_RADIUS = 700
-local AREA_CHECK_ID = UnitDefNames["energyfusion"].id -- small profile and water buildable!
-local PLACEMENT_CHECK_ID = UnitDefNames["staticrearm"].id -- a lil bigger, but should be placable often
 
 --Utility
 --------------------------------------------------------------------------------
@@ -136,7 +154,7 @@ local function CheckCircularStartboxOverlap(x,z,radius)
 		return true
 	end
 	local rx,rz
-	local degreeIncrement = 360 / CIRCLE_CHECK_COUNT
+	local degreeIncrement = 360 / STARTBOX_CIRCLE_CHECK_COUNT
 	local currentAngle = 0
 	while currentAngle <= 360 do
 		rx = x + radius * math.cos(currentAngle)
@@ -164,9 +182,9 @@ end
 --not all map area is useable!
 --> we get a ratio of usable map area
 --some maps are water maps!
---> we get a ratio of how much of the area is water!
+--> we get a ratio of how much of the usable area is water!
 --some maps have pretty big startboxes!
---> if startboxes are more than half the map, we ignore them from neutral immunity!
+--> if startboxes are more than half the usable map, we ignore them from neutral immunity!
 local function GuesstimateUsableMapArea()
 	local resolution = 256 -- biglag, is there an easier way to do this?
 	local mapStepX = mapSizeX/resolution
@@ -258,7 +276,7 @@ local function GetMixedComposition(staticValue,mobileValue,sectionGroups,moveGro
 	local mobileUnitComposition = GG.UnitSpawnerCompositionBuilder(mobileValue,mobileComposition,sectionGroups,moveGroups)
 	local staticComposition = GetGroupCompositionByBudgetAndType(staticValue,staticCompositions)
 	local staticUnitComposition = GG.UnitSpawnerCompositionBuilder(staticValue,staticComposition,sectionGroups,moveGroups)
-	return GG.UnitSpawnerAddUnitLists({staticUnitComposition,mobileUnitComposition})
+	return GG.UnitSpawnerAddCompositionLists({staticUnitComposition,mobileUnitComposition})
 end
 
 
@@ -280,11 +298,21 @@ end
 
 local function PatrolCampUnits(x,z,unitIDs)
 	for unitID, _ in pairs(unitIDs) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDef = UnitDefs[unitDefID]
 		
-		--TODO we can do some extra filtering of behavior based on unit types
-		--TODO keep imp and snitch stationary
-		--TODO give factories zombie commands to print stuff
-		Spring.GiveOrderToUnit(unitID,CMD.PATROL,{x + math.random(-100,100),0,z + math.random(-100,100)})
+		-- factories
+		if unitDef.isFactory then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, 2, 0) -- we set units to roam and attack nearby enemies!
+			GG.Zombies.SetRandomFactoryOrders(unitID, unitDefID) -- random queued units!
+		-- bombs that dont want to move
+		elseif unitDef.name == "cloakbomb" or unitDef.name == "shieldbomb" then
+			
+		-- all other units
+		else
+			Spring.GiveOrderToUnit(unitID,CMD.PATROL,{x + math.random(-100,100),0,z + math.random(-100,100)}) 
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, 1, 0) -- roam is a bit too spicy it seems
+		end
 	end
 end
 
@@ -297,8 +325,8 @@ local function GetCampSpawnPairPositions(ignoreStartbox)
 	x2,z2 = mapSizeX-x,mapSizeZ-z
 	-- My startbox jutsu has improved!! 
 	while 
-	(CheckCircularStartboxOverlap(x,z,CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
-	(CheckCircularStartboxOverlap(x2,z2,CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
+	(CheckCircularStartboxOverlap(x,z,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
+	(CheckCircularStartboxOverlap(x2,z2,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
 	CheckLavaAndRoughTerrain(x,z) or 
 	CheckLavaAndRoughTerrain(x2,z2) do
 		x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
@@ -339,7 +367,7 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 			value.wreckChance = 1
 			value.spacing = math.random(32,64)
 		end
-		unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
+		unitComposition = GG.UnitSpawnerAddCompositionLists({unitComposition,wreckComposition})
 	end
 	--Spring.Echo("Start neutrals")
 	--Spring.Utilities.TableEcho(unitComposition)
@@ -348,13 +376,20 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 	local teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 	unitIDs1Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,localNoGoZones)
 	PatrolCampUnits(x,z,unitIDs1Pod)
+	if sectionGroups ~= CHICKEN_SECTION_GROUPS then
+		GG.UnitSpawnerBuildMexInRadius(x,z,MEX_SEARCH_RADIUS,teamID)
+		GG.UnitSpawnerBuildGeosInRadius(x,z,MEX_SEARCH_RADIUS,teamID,(math.random()>0.5))
+	end
 	Spring.MarkerAddPoint(x, 0, z, "Reports of Remnants") -- important as they arent visible globaly
 	
 	
 	teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 	unitIDs2Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
 	PatrolCampUnits(x2,z2,unitIDs2Pod)
-	
+	if sectionGroups ~= CHICKEN_SECTION_GROUPS then -- nogozones make the order of opperations not matter for spawning these later, so thats neat!
+		GG.UnitSpawnerBuildMexInRadius(x2,z2,MEX_SEARCH_RADIUS,teamID)
+		GG.UnitSpawnerBuildGeosInRadius(x2,z2,MEX_SEARCH_RADIUS,teamID,(math.random()>0.5))
+	end
 	Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 end
 
@@ -362,7 +397,7 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 	local unitIDs
 	local teamID = GaiaTeamID
 	local wreckBudget = 0
-	
+	local thereBeChickens = false
 	local unitIDs
 	--uneven number results in big map center camp
 	if campCount % 2 == 1 then
@@ -370,8 +405,9 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
 		if math.random() > 0.3 then
-			sectionGroups = {"chickens","extraChickens"}
+			sectionGroups = CHICKEN_SECTION_GROUPS
 			thisMobileRatio = 0.8
+			thereBeChickens = true
 		end
 		local height = Spring.GetGroundHeight(mapSizeX/2,mapSizeZ/2)
 		--if the middle is too rough, or a pond on an otherwise non water map, we make 2 camps instead
@@ -386,11 +422,15 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 				value.wreckChance = 1
 				value.spacing = math.random(32,64)
 			end
-			unitComposition = GG.UnitSpawnerAddUnitLists({unitComposition,wreckComposition})
+			unitComposition = GG.UnitSpawnerAddCompositionLists({unitComposition,wreckComposition})
 		end
 			teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 			unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
 			PatrolCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
+			if not thereBeChickens then
+				GG.UnitSpawnerBuildMexInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID)
+				GG.UnitSpawnerBuildGeosInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID,(math.random()>0.5))
+			end
 			Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
 		end
 	end
@@ -398,9 +438,9 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 	for i = 1, campCount/2, 1 do
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
-		Spring.Echo(thisMobileRatio)
+		--Spring.Echo(thisMobileRatio)
 		if math.random() > 0.7 then
-			sectionGroups = {"chickens","extraChickens"}
+			sectionGroups = CHICKEN_SECTION_GROUPS
 			thisMobileRatio = 0.8
 		end
 		local theseUnitIDs = SpawnCampPair(campBudget,sectionGroups,thisMobileRatio,additionalWreckRatio)

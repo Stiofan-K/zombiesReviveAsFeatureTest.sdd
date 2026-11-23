@@ -37,8 +37,12 @@ local Y_OFFSET = 0
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function disSQ(x1,y1,x2,y2)
+	return (x1 - x2)^2 + (y1 - y2)^2
+end
+
 -- adds 2 Unit Lists together! accounts for different "spellings"
-local function AddUnitLists(tableList)
+local function AddCompositionLists(tableList)
 	local returnList = {}
 	for index, table in ipairs(tableList) do
 		for i, v in pairs(table) do
@@ -49,7 +53,7 @@ local function AddUnitLists(tableList)
 			elseif type(i) =="string"and type(v) == "number" then
 				returnList[#returnList +1] = {unitDefName = i, unitCount = v}
 			else
-				Spring.Echo("Input of AddUnitLists unit_composition_spawner has error")
+				Spring.Echo("Input of AddCompositionLists unit_composition_spawner has error")
 				Spring.Utilities.TableEcho(table)
 			end
 		end
@@ -61,7 +65,7 @@ end
 --------------------------------------------------------------------------------
 
 --
-local function CheckTagAndGroupMatch(tagsToMatch,groupsToMatch)
+local function CheckTagInGroupMatch(tagsToMatch,groupsToMatch)
 	for index, tag in ipairs(tagsToMatch) do
 		for index, group in ipairs(groupsToMatch) do
 			if tag == group  then
@@ -72,17 +76,17 @@ local function CheckTagAndGroupMatch(tagsToMatch,groupsToMatch)
 	return false
 end
 
-local function GetUnitDefListByGroupSectionAndMoveType(taggedUnitDefNameTable,classGroups,sectionGroups,moveGroups)
+local function GetUnitDefListByClassGroupGroupSectionAndMoveType(taggedUnitDefNameTable,classGroups,sectionGroups,moveGroups)
 	local returnUnitList
 	for unitDefName, unitDefTags in pairs(taggedUnitDefNameTable) do
 		--pyramid is meh, but break doesnt go to the next loop does it?
-		if not classGroups or CheckTagAndGroupMatch(unitDefTags.classTags,classGroups) then
-			if not sectionGroups or CheckTagAndGroupMatch(unitDefTags.sectionTags,sectionGroups) then
+		if not classGroups or CheckTagInGroupMatch(unitDefTags.classTags,classGroups) then
+			if not sectionGroups or CheckTagInGroupMatch(unitDefTags.sectionTags,sectionGroups) then
 				if not moveGroups or 
 				unitDefTags.movementTags[1] == "static" or 
 				-- this ends up with mostly BW in bombs as an issue maybe, other gs and planes are not bound to normal roles, they are too finiky for that
 				unitDefTags.movementTags[1] == "air" or 
-				CheckTagAndGroupMatch(unitDefTags.movementTags,moveGroups) then
+				CheckTagInGroupMatch(unitDefTags.movementTags,moveGroups) then
 					if not returnUnitList then
 						returnUnitList = {unitDefName}
 					else
@@ -231,6 +235,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 	end
 	--its meh that we loop twice but otherwise we can't get the total Fractions right? I suppose using % would work, but that is more math on the end user
 	for index, data in pairs(unitGroupAndParams) do
+		--TODO consider forced buildings? with x,z offset to center so people can make specific bases?
 		local classGroups = nil
 		local sectionGroups = sectionGroups
 		local budgetFraction = 1
@@ -274,21 +279,21 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 				classGroups = {classGroups}
 				--Spring.Utilities.TableEcho(classGroups)
 			end
-			local selectedUnitDefList = GetUnitDefListByGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups,movementGroups)
+			local selectedUnitDefList = GetUnitDefListByClassGroupGroupSectionAndMoveType(customTaggedUnitDefNames,classGroups,sectionGroups,movementGroups)
 			--Spring.Utilities.TableEcho(selectedUnitDefList)
 			typeComposition,excessBudget,unitCount = GetRandomUnitsFromDefListForCost(budgetToSpend,selectedUnitDefList,multiRandomise)
 			--Spring.Utilities.TableEcho(typeComposition)
 			if unitCount < minUnits then
 				local unitsToMin = minUnits - unitCount
 				local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
-				typeComposition = AddUnitLists({minUnitComposition,typeComposition})
+				typeComposition = AddCompositionLists({minUnitComposition,typeComposition})
 			end
 		end
 		--Spring.Utilities.TableEcho(typeComposition)
 		for index, value in ipairs(typeComposition) do
 			value.wreckChance = wreckChance
 		end
-		returnComposition = AddUnitLists({returnComposition,typeComposition})
+		returnComposition = AddCompositionLists({returnComposition,typeComposition})
 	end
 	return returnComposition
 end
@@ -365,6 +370,60 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 	return spawnedUnits, noGoZones
 end
 
+local function BuildMexInRadius (x,z,searchRadiusInElmo,teamID)
+	local metalSpots = GG.metalSpots
+	local builtMex = nil
+	if metalSpots then
+		for i = 1, #metalSpots do
+			local mexX = metalSpots[i].x
+			local mexZ = metalSpots[i].z
+			local distance = disSQ(x,z,mexX,mexZ)
+			if distance < searchRadiusInElmo then
+				-- this can build duplicate mex! but those dont actually make metal, so its fine sorta. Good enough.
+				-- I've tried to prevent this using this but it didnt seem to work as intended for it :c
+				--(Spring.TestBuildOrder(UnitDefNames["staticmex"].id, mexZ, 0 ,mexX, 0) == 0)
+				local mexY = Spring.GetGroundHeight(mexX,mexZ)
+				local unitID = Spring.CreateUnit("staticmex",mexX,mexY,mexZ,0,teamID or GaiaTeamID)
+				if not builtMex then
+					builtMex = {unitID}
+				else
+					table.insert(builtMex,unitID)
+				end
+			end
+		end
+	end
+	return builtMex
+end
+
+local function BuildGeosInRadius (x,z,searchRadiusInElmo,teamID,advancedGeo)
+	local builtGeos = nil
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		local fID = features[i]
+		if FeatureDefs[Spring.GetFeatureDefID(fID)].geoThermal then
+			local geoX, geoY, geoZ = Spring.GetFeaturePosition(fID)
+			local distance = disSQ(x,z,geoX,geoZ)
+			if distance < searchRadiusInElmo then
+				local unitID
+				if advancedGeo then
+					unitID = Spring.CreateUnit("energyheavygeo",geoX, geoY, geoZ,0,teamID or GaiaTeamID)
+				else
+					unitID = Spring.CreateUnit("energygeo",geoX, geoY, geoZ,0,teamID or GaiaTeamID)
+				end
+				if not builtGeos then
+					builtGeos = {unitID}
+				else
+					table.insert(builtGeos,unitID)
+				end
+			end
+		end
+	end
+	return builtGeos
+end
+
+
+
+
 --[[
 example comp building func
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
@@ -409,7 +468,7 @@ local function spawningTest()
 		{unitDefName = [[vehaa]], unitCount = 3, wreckChance = 0.5, spacing = 1000}, -- spacing accounts for future spawns, so order does matter sorta
 		{unitDefName = [[spideraa]], unitCount = 3, wreckChance = 1, spacing = 1}
 	}
-	spawnList = GG.UnitSpawnerAddUnitLists({raider,riot,skirm,assault,dante,aa})
+	spawnList = GG.UnitSpawnerAddCompositionLists({raider,riot,skirm,assault,dante,aa})
 
 	--GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
 	GG.UnitSpawnerQueueListSpawn(spawnList,math.random(1,mapSizeX),math.random(1,mapSizeZ),GaiaTeamID)
@@ -454,10 +513,15 @@ function gadget:GameStart()
 	--CompositionBuilderTest()
 	
 end
+GG.UnitSpawnerBuildMexInRadius = BuildMexInRadius
+GG.UnitSpawnerBuildGeosInRadius =  BuildGeosInRadius
 
-GG.UnitSpawnerAddUnitLists = AddUnitLists
---GG.UnitSpawnerGetGroupCompositionByBudgetAndType = GetGroupCompositionByBudgetAndType
-GG.GetRandomUnitsFromDefListForCost = GetRandomUnitsFromDefListForCost
+GG.UnitSpawnerCheckTagInGroupMatch = CheckTagInGroupMatch
+GG.UnitSpawnerGetUnitDefListByGroupSectionAndMoveType = GetUnitDefListByClassGroupGroupSectionAndMoveType
+
+GG.UnitSpawnerGetRandomUnitsFromDefListForCost = GetRandomUnitsFromDefListForCost
 GG.UnitSpawnerGetRandomUnitsFromDefListByCount = GetRandomUnitsFromDefListByCount
+
+GG.UnitSpawnerAddCompositionLists = AddCompositionLists
 GG.UnitSpawnerCompositionBuilder = CompositionBuilder
 GG.UnitSpawnerQueueListSpawn = QueueListSpawn

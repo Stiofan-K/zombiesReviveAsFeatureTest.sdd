@@ -310,7 +310,7 @@ local structureConfig = {
 
 		unitDef.customparams.evacuation_speed = "1" -- 10 minutes
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"greeble"}}]]-- unsure...
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"greeble"}}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[40 45 40]]
@@ -333,6 +333,7 @@ local structureConfig = {
 
 		unitDef.customparams.evacuation_speed = "1.25" -- 8 minutes
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"greeble"}}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[70 60 70]]
@@ -353,7 +354,6 @@ local structureConfig = {
 		unitDef.footprintz = 9
 		unitDef.metalcost = 2000
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]]-- unsure... but a greeble category seems alright
 		unitDef.customparams.soundselect = "cloaker_select"
 
 		unitDef.featuredefs.dead.object = "pw_techlab_dead.dae"
@@ -425,7 +425,7 @@ local structureConfig = {
 		unitDef.metalstorage = 100000
 		unitDef.energystorage = 0
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"ecoSupport","greeble"}}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[80 25 60]]
@@ -445,6 +445,7 @@ local structureConfig = {
 		unitDef.footprintz = 6
 		unitDef.metalcost = 2000
 
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]]
 		unitDef.customparams.soundselect = "shield_select"
 
 		unitDef.collisionvolumescales = [[70 60 70]]
@@ -465,7 +466,7 @@ local structureConfig = {
 		unitDef.script = "pw_mine3.lua"
 		unitDef.icontype = [[pw_metal]]
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoHeavy"}]]
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"ecoHeavy"}}]]
 		unitDef.customparams = unitDef.customparams or {}
 		unitDef.customparams.removewait = 1
 		unitDef.metalmake = 10

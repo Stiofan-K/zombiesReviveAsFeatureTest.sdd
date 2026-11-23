@@ -111,7 +111,7 @@ local function SetZombieSpeedMult(unitID,speedMult)
 end
 
 -- Zombie commands
-local function RandomFactoryOrders(unitID, unitDefID) -- give factory something to do
+local function SetRandomFactoryOrders(unitID, unitDefID) -- give factory something to do
 	if Spring.GetUnitIsDead(unitID) then
 		return
 	end
@@ -183,7 +183,7 @@ local function SetZombieBehavior(unitID)
 	
 	Spring.GiveOrderArrayToUnit(unitID,orders)
 	if (UnitDefs[unitDefID].isFactory) then
-		RandomFactoryOrders(unitID, unitDefID) -- give factory something to do
+		SetRandomFactoryOrders(unitID, unitDefID) -- give factory something to do
 	end
 end
 
@@ -293,17 +293,17 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
-
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
+end
 
-	GG.Zombies = {
+GG.Zombies = {
 		TurnFeatureIntoUnit     	= TurnFeatureIntoUnit,
 		SetZombieSpeedMult      	= SetZombieSpeedMult,
 		SetZombieBehavior       	= SetZombieBehavior,
+		SetRandomFactoryOrders 		= SetRandomFactoryOrders,
 		SetHealthToReclaimPercent	= SetHealthToReclaimPercent,
 		GetFeatureResurrectData 	= GetFeatureResurrectData,
 		GetZombieResurrectData 		= GetZombieResurrectData, -- I want to expose these for modification from outside if desired
 		AddFeatureToZombieCountdown	= AddFeatureToZombieCountdown
 	}
-end

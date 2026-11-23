@@ -6,6 +6,17 @@
 
 
 local allCompositions = {
+    minorPointsOfInterest = {
+        minorPointsOfInterest = {
+            {{classGroup = "ecoSupport", budgetFraction = 0, minUnits = 4,sectionGroups = "planetWars"},{classGroup = "factory", budgetFraction = 0, minUnits = 1}},
+            {{classGroup = "ecoSupport", budgetFraction = 0, minUnits = 4,sectionGroups = "planetWars"},{classGroup = "factory", budgetFraction = 0, minUnits = 1}}
+        },
+        majorPointsOfInterest = {
+            {{classGroup = "ecoHeavy", budgetFraction = 0, minUnits = 1},{classGroup = "factory", budgetFraction = 0, minUnits = 1}},
+            {{classGroup = "staticStrategic", budgetFraction = 0, minUnits = 1},{classGroup = "factory", budgetFraction = 0, minUnits = 1}},
+        },
+    },
+
     -- Get your static composition today! 
     staticCompositions = {
         tinyCost = { -- less than 500 cost, a few light defences and eco structures
@@ -18,18 +29,18 @@ local allCompositions = {
         lowCost = { -- less than 1000 cost, riot turrets, maybe a factory, no skirmsher turrets yet, light aa
             {turretRiot = 1,turretLight = 0, ecoLight = 1,},
             {factoryPlate = 1, turretLight =3, ecoLight = 3, ecoSupport = 1},
-            {turretRiot = 1,turretLight = 3, factoryPlate = 1},
+            {turretRiot = 1,turretLight = 3, ecoLight = 1, staticSupprt = 1},
             {turretRiot = 1,turretLight = 3, ecoLight = 2, ecoSupport = 1},
             {turretRiot = 1,turretLight = 3, ecoLight = 2, turretAALight = 1},
             {factoryPlate = 1,turretLight = 3, ecoLight = 2, turretAALight = 1}
         },
         mediumCost = { --less than 3000 cost, turrets skirm may struggle with, maybe a fusion or so tossed in
-            {{classGroup = "factory", budgetFraction = 3, minUnits = 1,},turretLight =1,ecoLight =1, turretAALight = 1, ecoSupport = 1, turretRiot = 1,},
-            {ecoHeavy = 1,turretLight =1, ecoSupport = 3,  turretRiot = 1, turretAALight = 1,{classGroup = "staticSupport", budgetFraction = 0, minUnits = 1,}},
-            {turretSkirm = 1, ecoLight =2, ecoSupport = 1, turretAALight = 1, factoryPlate = 0.2,},
-            {turretSkirm = 1, turretLight =3, ecoLight =1, ecoSupport = 1, turretAALight = 1, factoryPlate = 0.2,},
-            {turretSkirm = 1, turretRiot = 3,ecoLight =1, ecoSupport = 1, turretAALight = 1,},
-            {ecoHeavy = 1, turretsHeavy = 1, ecoLight = 2, ecoSupport= 0.3, {classGroup = "factory", budgetFraction = 3, minUnits = 1,},{classGroup = "energypylon", budgetFraction = 0, minUnits = 1,}}
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},turretLight =1,ecoLight =1, turretAALight = 1, ecoSupport = 1, turretRiot = 1,},
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},ecoHeavy = 1,turretLight =1, ecoSupport = 3,  turretRiot = 1, turretAALight = 1,{classGroup = "staticSupport", budgetFraction = 0, minUnits = 1,}},
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},turretSkirm = 1, ecoLight =2, ecoSupport = 1, turretAALight = 1, factoryPlate = 0.2,},
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},turretSkirm = 1, turretLight =3, ecoLight =1, ecoSupport = 1, turretAALight = 1, factoryPlate = 0.2,},
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},turretSkirm = 1, turretRiot = 3,ecoLight =1, ecoSupport = 1, turretAALight = 1,},
+            {{classGroup = "factory", budgetFraction = 1, minUnits = 1,},ecoHeavy = 1, turretsHeavy = 1, ecoLight = 2, ecoSupport= 0.3,{classGroup = "energypylon", budgetFraction = 0, minUnits = 1,}}
         },
         highCost = { -- less than 7500 cost, a relatively developed base, turrets, factory, caretakers, maybe a desolator, big AA?
             {ecoHeavy = 1,turretsHeavy = 1,turretSkirm = 1, ecoSupport = 0.5, turretLight =1, turretRiot = 1, {classGroup = "staticSupport", budgetFraction = 0, minUnits = 1,},ecoLight = 1,factory = 0.5, {classGroup = "energypylon", budgetFraction = 0, minUnits = 1,}},
