@@ -2,7 +2,7 @@ return {
 	name = 'Stiofan Zombie test',
 	description = 'Just testing zombie stuff',
 	shortname = 'zkstiofanzombietest',
-	version = 'v0.4.3',
+	version = 'v0.4.4',
 	mutator = '1',
 	game = '',
 	shortGame = '',

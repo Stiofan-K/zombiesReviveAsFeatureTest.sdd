@@ -13,7 +13,7 @@ return { cloakbomb = {
   corpse                 = [[DEAD]],
 
   customParams           = {
-    unit_class_tags = {sectiontags = "baseGame", classtags ="assault"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="bomb"},
     midposoffset   = [[0 0 -2]],
     modelradius    = [[8]],
     instantselfd   = [[1]],

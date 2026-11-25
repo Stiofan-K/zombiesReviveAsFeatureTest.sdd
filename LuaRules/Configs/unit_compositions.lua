@@ -4,6 +4,46 @@
 
 --TODO Compositions for neutrals or anything else really should come with a certain weakness to exploit
 
+-- Lets try another approach
+
+-- cost ranges innate to a group, maybe even a name!
+-- class tag and cost tags that describe a compositions function, then I wouldnt need to structure them like this :>
+-- types: static, mobile, prefab.
+--> we can mix the different types for different results! prefab air base with extra defence, for example
+--> could be customisable again, but it may be best to have them just be structured
+-- cost brackets: tiny, low, med, high, ludicrous
+--> lets instead use hard  metal values?
+--> also can be customisable
+
+local namedAndTaggedCompositions = {
+    {compositionType = {"static"}, costBrackets = {"tiny","low"}, composition = {turretLight = 1, ecoLight = 1}},
+    {compositionType = {"static"}, costBrackets = {"tiny","low"}, composition = {turretRiot = 1,turretLight = 0.5, ecoLight = 0.5}},
+    {compositionType = {"static"}, costBrackets = {"tiny","low"}, composition = {turretAALight = 1,turretLight = 1, ecoLight = 0.5}},
+    {factoryPlate = 1, turretLight =1},
+    {factoryPlate = 1, turretLight =1, ecoLight = 0.5},
+    {turretLight =1, ecoLight = 0.5, ecoSupport = 0.5},
+    
+    
+}
+
+
+-- Basic idea, point of interest + static + mobile -> one camp.
+--> mobiles contain all sort of units.
+--> statics contain economy and turrets.
+---> what if I.. just pile all turrets and such into a category?
+--> the ratio of each can be adjusted on the fly, but the point of interest should be the vocal point, likely half the budget or more.
+--> prefabs are akin to points of interest that come with a predefined camp composition surrounding them.
+
+--> I should completely avoid using direct assignments, so that the compositions can be reused for chickens for
+
+--> I will likely need help in making a good system. I do just want to finish this for now.
+--> So i will just hardcode some points of interests for cost brackets and make individual static and mobile comps more foilable.
+
+--> good poi are, radars -> storage/pylon/caretaker -> shields/jammers -> factories/heavyTurret? -> staticStrategic
+--> PW has some structures that fit nicely/could be an upscale of the lower tier PoI
+--> it seems fair to have a 4 cluster of PW buildings being relatively weakly guarded.
+--> chickens becomes an issue if I hardcode it however... Maybe adjusting cost is a smart idea?
+
 
 local allCompositions = {
     minorPointsOfInterest = {
@@ -94,17 +134,18 @@ local allCompositions = {
             {striderDemi = 1,antiSub = 0.5,},
             {aerialAA = 1,bomberLight = 1, assault = 1},
             {bomberHeavy = 1,striderDemi = 1},
-            {striderMedium = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,},},
+            {striderMedium = 1,skirm =1,{classGroup = "support", budgetFraction = 0, minUnits = 1,},},
             {striderDemi = 1,assault = 1},
-            {antiHeavy = 1}
+            {antiHeavy = 1,assault = 1,artillery = 1,raider = 0.5,}
         },
         ludicrousCost = {-- 7500 or more, anything goes! but we may want another tier
-            {antiHeavy = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
+            {antiHeavy = 1,assault = 1,artillery = 1,raider = 0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
+            {stirderDemi = 1,assault = 1,artillery = 1,raider = 0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
             {striderDemi = 1,bomberHeavy = 1},
             {striderMedium = 3,assault = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
-            {striderMedium = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
+            {striderMedium = 1,striderDemi = 1,antiAir = 0.5,raider=0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
             {striderDemi = 1,aerialAA = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
-            {striderHeavy = 1, striderMedium = 0,{classGroup = "support", budgetFraction = 0, minUnits = 1,}}
+            {striderHeavy = 1, striderMedium = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}}
         }
     },
     -- mix of static an mobile units
@@ -116,6 +157,17 @@ local allCompositions = {
 }
 
 return allCompositions
+-- TODO sort these in/figure a better way of allocating to cost
+--[[ --buckycomps! 
+{vehsupport=15, riot=8, amphsupport=5, energysolar=4, energywind=2, amphcon=2},
+{shieldassault=40, riot=20, skirm=20, aa=10, shieldshield=4, staticradar=2, energysolar=1},
+{arty=20, riot=8, planescout=6, planelightscout=4, energysolar=4, constructor=2},
+{turretheavylaser=20, turretriot=10, turretlaser=5, cloakbomb=20, scout=1},
+{vehcapture=20, spideremp=20, spideraa=5, turretemp=4, energysolar=2, energywind=2, cloakcon=2}
+{gunshipskirm=10, bomberprec=10, bomberemp=6, energysolar=6, energyfusion=4, staticrearm=3, turretlaser=2, staticcon=2, staticstorage=1},
+{napalmmissile=250, empmissile=250, staticradar=10, scout=10, energysolar=5} 
+]]
+
 
 -- some thoughts on mixed compositions
 --[[

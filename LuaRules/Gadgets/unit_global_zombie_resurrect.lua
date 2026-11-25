@@ -53,7 +53,7 @@ local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
 local initalAllianceCount = -1 --subtract gaia
 for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 	local teamlist = Spring.GetTeamList(allyTeamID)
-	Spring.Echo(#teamlist)
+	--Spring.Echo(#teamlist)
 	if (#teamlist) >0 then
 		initalAllianceCount = initalAllianceCount +1
 	end

@@ -54,6 +54,7 @@ local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.8
 local NEUTRAL_MOBILE_MIN = 30
 local NEUTRAL_MOBILE_MAX = 70
 local NEUTRAL_EDGE_OFFSET = 500
+local NEUTRAL_CHICKEN_CHANCE = 0 --TODO theres some figuring out to be done but I'll keep this open
 local CENTER_CAMP_MULT = 3
 
 local MEX_SEARCH_RADIUS = MAP_SIZE_UNIT * 1200
@@ -70,8 +71,8 @@ local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
 local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
 
---lets not use this for now
---local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO
+--local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO -- I prefer it being variable :O
+local startingNeutralChickenChance = tonumber(modOptions.starting_neutral_chicken_chance) or NEUTRAL_CHICKEN_CHANCE
 local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks_ratio) or NEUTRAL_ADDITIONAL_WRECK_RATIO
 
 -- Compositions and nogozones setup
@@ -106,14 +107,6 @@ if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput <= initalAlliance
 		neutralAllyTeamID = neutralAllyTeamID + 1
 	end
 else -- anything else translates to gaia neutrals
-	neutralAllyTeamID = GaiaAllyTeamID
-end
-if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput <= initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
-	neutralAllyTeamID = startingNeutralsTeamInput -1 -- -1 for offset 
-	if neutralAllyTeamID == GaiaAllyTeamID then --TODO there is likely a better solution, it seems sometimes Gaia is not the last team in the list
-		neutralAllyTeamID = neutralAllyTeamID + 1
-	end
-else -- anything else translates to gaia zombies
 	neutralAllyTeamID = GaiaAllyTeamID
 end
 
@@ -303,6 +296,7 @@ local function PatrolCampUnits(x,z,unitIDs)
 		
 		-- factories
 		if unitDef.isFactory then
+			--TODO check if silo does things correctly. aka if the missiles are on freefire
 			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, 2, 0) -- we set units to roam and attack nearby enemies!
 			GG.Zombies.SetRandomFactoryOrders(unitID, unitDefID) -- random queued units!
 		-- bombs that dont want to move
@@ -404,7 +398,7 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 		campCount = campCount -1
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
-		if math.random() > 0.3 then
+		if math.random() < startingNeutralChickenChance then
 			sectionGroups = CHICKEN_SECTION_GROUPS
 			thisMobileRatio = 0.8
 			thereBeChickens = true
@@ -412,7 +406,7 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 		local height = Spring.GetGroundHeight(mapSizeX/2,mapSizeZ/2)
 		--if the middle is too rough, or a pond on an otherwise non water map, we make 2 camps instead
 		if CheckLavaAndRoughTerrain(mapSizeX/2,mapSizeZ/2) or (height < 0 and mapWaterRatio < 0.3) then
-			unitIDs = SpawnCampPair(campBudget*(CENTER_CAMP_MULT/1.5),sectionGroups,thisMobileRatio,additionalWreckRatio)
+			unitIDs = SpawnCampPair(campBudget*(CENTER_CAMP_MULT),sectionGroups,thisMobileRatio,additionalWreckRatio)
 		else			
 			local unitComposition = SetupUnitComposition(campBudget*CENTER_CAMP_MULT,thisMobileRatio,sectionGroups)
 		--Spring.Utilities.TableEcho(unitComposition)
@@ -439,7 +433,7 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
 		--Spring.Echo(thisMobileRatio)
-		if math.random() > 0.7 then
+		if math.random() < startingNeutralChickenChance then
 			sectionGroups = CHICKEN_SECTION_GROUPS
 			thisMobileRatio = 0.8
 		end
@@ -538,4 +532,13 @@ function gadget:GameStart()
 	local count,value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
 	Spring.Echo("CampCount = "..count)
 	Spring.Echo("CampValue = "..value)
+	
+	--[[
+	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
+	Spring.Echo("usableArea = "..usableMapArea)
+	Spring.Echo("usableRatio = "..usableMapRatio)
+	Spring.Echo("WaterRatio = "..waterAreaRatio)
+	Spring.Echo("StartboxRatio = "..startBoxAreaRatio)
+		Spring.Echo("UTIL TEST!")
+		]]
 end

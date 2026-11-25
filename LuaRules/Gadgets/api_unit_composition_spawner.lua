@@ -185,7 +185,7 @@ local function GetRandomUnitsFromDefListForCost(budget,unitDefNameList,multiRand
 end
 
 --[[ 
-unitTypeAndRatio should be "scout"= 2 where 2 is the fraction of the budget allocated on the budget
+The compositions should be  akin to "scout"= 2 where 2 is the fraction of the budget allocated on the budget
  so for:{
  	scout = 2,
 	skirm = 1,
@@ -198,13 +198,14 @@ A more complex setup would be
 	{classGroup = skirm, budgetFraction = 1, minUnits =2, multiRandomise = false},
 	{classGroup = cloakriot, budgetFraction 0.2, minUnits = 5}
 }
+You can define specific units, minimum unit counts, if we randomise multiple times in a certain class, if theres a chance for them to be wrecks etc.
 returns something akin to 
 { unitDefName = "vehriot",count = 2,wreckChance = 0.5,spacing = 64}
 ]]
 local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,movementGroups,customTaggedUnitDefNames)
 	local returnComposition = {}
 	local typeComposition = {}
-	local budgetTotalFraction = 0
+	local budgetTotalFractions = 0
 	local excessBudget = 0
 	--Spring.Echo(unitTypeAndRatio)
 	if not sectionGroups then
@@ -228,9 +229,9 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		if not budgetFraction then
 			budgetFraction = 1
 		end
-		budgetTotalFraction = budgetTotalFraction + budgetFraction
+		budgetTotalFractions = budgetTotalFractions + budgetFraction
 	end
-	if budgetTotalFraction <= 0 then
+	if budgetTotalFractions <= 0 then
 		error("the total budgetfraction ends up 0 or negative")
 	end
 	--its meh that we loop twice but otherwise we can't get the total Fractions right? I suppose using % would work, but that is more math on the end user
@@ -257,7 +258,11 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 			Spring.Echo("Input of Compositionbuilder in unit_composition_spawner has error")
 		end
 		--there is likely a more satisfying way to do the excess?
-		local budgetToSpend = budget*budgetFraction/budgetTotalFraction + excessBudget
+		local budgetToSpend = budget*(budgetFraction/budgetTotalFractions) + excessBudget
+		--Spring.Echo("budget for ".. classGroups)
+		--Spring.Echo(budgetToSpend)
+		--Spring.Echo(budgetFraction)
+		--Spring.Echo(budgetTotalFractions)
 		--Spring.Utilities.TableEcho(classGroups)
 		--A specific unitDefName is supplied
 		if UnitDefNames[classGroups] then
@@ -285,8 +290,15 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 			--Spring.Utilities.TableEcho(typeComposition)
 			if unitCount < minUnits then
 				local unitsToMin = minUnits - unitCount
-				local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
-				typeComposition = AddCompositionLists({minUnitComposition,typeComposition})
+				if not multiRandomise and unitCount > 0 then
+					-- we add to the existing unit!
+					typeComposition[1].count =  typeComposition[1].count + unitsToMin
+				else
+					--TODO should we get the cheapest instead?
+					--anything goes!
+					local minUnitComposition = GetRandomUnitsFromDefListByCount(unitsToMin,selectedUnitDefList,multiRandomise)
+					typeComposition = AddCompositionLists({minUnitComposition,typeComposition})
+				end
 			end
 		end
 		--Spring.Utilities.TableEcho(typeComposition)
@@ -300,7 +312,8 @@ end
 
 -- { { unitDefName = "vehriot",count = 2,wreckChance = 0.5,spacing = 64}}
 -- alternate queue type {"vehriot" = 2, "cloakassault" = 3}
-local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO removed global deciders in favor of per unit things
+local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZonesInput) --TODO removed global deciders in favor of per unit things
+	local theseNoGoZones = noGoZonesInput
 	local spawnedUnits = {}
 	local timeToGroundOffset = 5
 	local firstSearchSuccess = true
@@ -326,12 +339,17 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 			--Spring.Echo(unitDefName)
 			--Spring.Echo(spawnCount)
 		else
-			Spring.Echo("type set on queued unit is wrong")
+			Spring.Echo("Content of composition list is faulty")
+			break
 		end
 		for i = 1, spawnCount, 1 do
 			local unitID = nil
 			--Spring.MarkerAddPoint(x, 0, z, "SearchStart")
-			local localX,localZ,facing,sX,sZ,searchSuccess = GG.NoGoZonesGetValidSpawnPositionForUnit(UnitDefNames[unitDefName].id,{x,z},false,noGoZones)
+			if not UnitDefNames[unitDefName] then
+				Spring.Echo("UnitdefName in spawnlist is faulty")
+				break
+			end
+			local localX,localZ,facing,sX,sZ,searchSuccess = GG.NoGoZonesGetValidSpawnPositionForUnit(UnitDefNames[unitDefName].id,{x,z},false,theseNoGoZones)
 			if spawnPattern == "centered" and firstSearchSuccess and searchSuccess then
 				x,z = localX,localZ --TODO there is a different spawnpattern possible by using the following point for the next spawn start
 				firstSearchSuccess = false
@@ -354,20 +372,23 @@ local function QueueListSpawn(unitDefParamTable,x,z,teamID,noGoZones) --TODO rem
 				if not localSpacing then
 					localSpacing = math.random (SPACING_MIN,SPACING_MAX)
 				end
-				noGoZones = GG.NoGoZonesAddNoGoZone(localX,localZ,math.max(sX, sZ)+localSpacing,noGoZones)
+				theseNoGoZones = GG.NoGoZonesAddNoGoZone(localX,localZ,math.max(sX, sZ)+localSpacing,theseNoGoZones)
 				if spawnAsWreckChance == 1 or spawnAsWreckChance > math.random() then
-					Spring.CreateUnitWreck(unitID)
+					local featureID = Spring.CreateUnitWreck(unitID)
+					if featureID then
+						Spring.TransferFeature(featureID,GaiaTeamID)--wrecks being neutral team seems good! makes base outlines decently visible
+					end
 					--TODO for factories this causes a looping error in the factory flattening gadget until another factory is placed. Seems to be harmless, but is best handled still
 					Spring.DestroyUnit(unitID,false,true,nil,true)
 				else
 					spawnedUnits[unitID] = true
 				end
 			else
-				Spring.echo("Failed to Spawn")
+				Spring.Echo("Failed to Spawn")
 			end
 		end
 	end
-	return spawnedUnits, noGoZones
+	return spawnedUnits, theseNoGoZones
 end
 
 local function BuildMexInRadius (x,z,searchRadiusInElmo,teamID)

@@ -25,18 +25,46 @@ end
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local modOptions = Spring.GetModOptions()
-local GaiaTeamID     = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local staticCompositions = allCompositions.staticCompositions
 local mobileCompositions = allCompositions.mobileCompositions
+
+
+-- Team setup
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local REINFORCE_TO_ALL_ID = 99
+
+local GaiaTeamID     = Spring.GetGaiaTeamID()
+local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
+local initalAllianceCount = -1 --subtract gaia
+for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+	local teamlist = Spring.GetTeamList(allyTeamID)
+	if (#teamlist) >0 then
+		initalAllianceCount = initalAllianceCount +1
+	end
+end
+local neutralAllyTeamID = nil
+local startingNeutralsTeamInput = tonumber(modOptions.reinforcement_drop_team) or 0
+
+if startingNeutralsTeamInput > 0 and startingNeutralsTeamInput <= initalAllianceCount then -- if inbetween 0 and max teamcount, we have a team to spawn on!
+	neutralAllyTeamID = startingNeutralsTeamInput -1 -- -1 for offset 
+	if neutralAllyTeamID == GaiaAllyTeamID then --TODO there is likely a better solution, it seems sometimes Gaia is not the last team in the list
+		neutralAllyTeamID = neutralAllyTeamID + 1
+	end
+elseif startingNeutralsTeamInput == REINFORCE_TO_ALL_ID then-- anything else translates to no neutrals
+	neutralAllyTeamID = REINFORCE_TO_ALL_ID
+end
+
 local teamSpawnPosition = {}
-    
-local reinforceInput = tonumber(modOptions.reinforce_drop) or 0
 local gaiaReinforcements = tonumber(modOptions.reinforce_drop_gaia) or 0
 local reinforceBudget =  tonumber(modOptions.reinforce_drop_base) or 0
+local reinforceWaveCount = tonumber(modOptions.reinforce_drop_wave_count) or 10
 local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 300
 local reinforceGaiaMult = tonumber(modOptions.reinforce_drop_gaia_mult) or 1
+
+local waveCount = 0
 
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     if not budget then
@@ -59,19 +87,34 @@ local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     return {assault = 1}
 end
 
-local function TeamReinforcements(budget)
-    local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budget)
-    local unitComposition = GG.UnitSpawnerCompositionBuilder(budget,UnitTypeAndRatios)
+local function TeamReinforcements(allyTeamIDInput,budgetInput)
+    
+    if allyTeamIDInput == REINFORCE_TO_ALL_ID then
+        for index, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+            if not allyTeamID == GaiaAllyTeamID and #Spring.GetTeamList(allyTeamID) > 0 then
+                TeamReinforcements(allyTeamID,budgetInput)
+            end
+        end
+    end
+    
+    local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budgetInput)
+    local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetInput,UnitTypeAndRatios)
     --[[
     Spring.Echo("ReinforceCompUnits")
     for key, value in pairs(unitComposition) do
         Spring.Echo(value.unitDefName .." = "..value.unitCount)
     end
     ]]
-    for teamID, position in pairs(teamSpawnPosition) do
-        --Spring.Echo(teamID)
+    local teamIDs = Spring.GetTeamList(allyTeamIDInput)
+    local budgetPerPlayer = budgetInput/#teamIDs
+    for index, teamID in ipairs(teamIDs) do
+        local position = teamSpawnPosition[teamID]
         local x,z = position[1],position[2]
-        GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID)
+        -- everyone gets their own comps! yay!
+        local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budgetPerPlayer)
+        local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetPerPlayer,UnitTypeAndRatios)
+        
+        GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,nil)
     end
 end
 
@@ -88,8 +131,7 @@ local function GaiaReinforcements(budget)
     local gaiaBuildings = {}
     if gaiaUnits and #gaiaUnits > 0 then
         for index, unitID in ipairs(gaiaUnits) do
-            local unitSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
-            if unitSpeed or unitSpeed == 0 then
+            if UnitDefs[Spring.GetUnitDefID(unitID)].isImmobile then
                 gaiaBuildings[unitID] = true
             end
         end
@@ -114,27 +156,34 @@ local function GaiaReinforcements(budget)
     end
 end
 
-function gadget:GameFrame(f)
-    
-    if f == 1 then
-        for _, unitID in ipairs(Spring.GetAllUnits()) do
-            local teamID = Spring.GetUnitTeam(unitID)
-            if teamID ~= GaiaTeamID then
-                local x,y,z = Spring.GetUnitBasePosition(unitID)
-                teamSpawnPosition[teamID] = {x,z}
-            end
-        end
-	end
-    
-	if f%1800 == 1 and f ~= 1 then
+
+local function HandleReinforcements()
+        waveCount = waveCount + 1
         if reinforceBudget > 0 then
-            if reinforceInput ~= 0 then
-                TeamReinforcements(reinforceBudget)
+            if neutralAllyTeamID then
+                TeamReinforcements(neutralAllyTeamID,reinforceBudget)
             end
             if gaiaReinforcements ~= 0 then
                 GaiaReinforcements(reinforceBudget*reinforceGaiaMult)
             end
         end
         reinforceBudget = reinforceBudget + reinforceBudgetGrowth
+end
+
+
+function gadget:GameFrame(f)
+    
+    if f == 1 then
+        for _, unitID in ipairs(Spring.GetAllUnits()) do
+            local teamID = Spring.GetUnitTeam(unitID)
+            if teamID ~= GaiaTeamID and not teamSpawnPosition[teamID] then
+                local x,y,z = Spring.GetUnitBasePosition(unitID)
+                teamSpawnPosition[teamID] = {x,z}
+            end
+        end
+	end
+    
+	if (f == 90 or f%1800 == 1) and waveCount < reinforceWaveCount and f ~= 1 then -- after 10 sec and then every min
+        HandleReinforcements() 
 	end
 end
