@@ -72,7 +72,7 @@ return { spideranarchid = {
       craterMult              = 0,
 
       damage                  = {
-        default = 5,
+        default = 20,
       },
 
       explosionGenerator      = [[custom:FLASH1blue]],

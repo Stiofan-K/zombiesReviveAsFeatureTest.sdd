@@ -64,6 +64,8 @@ local reinforceWaveCount = tonumber(modOptions.reinforce_drop_wave_count) or 10
 local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 300
 local reinforceGaiaMult = tonumber(modOptions.reinforce_drop_gaia_mult) or 1
 
+local autoReinforceBudget = tonumber(modOptions.reinforcement_drop_auto_budget) or 0
+
 local waveCount = 0
 
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
@@ -114,7 +116,9 @@ local function TeamReinforcements(allyTeamIDInput,budgetInput)
         local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budgetPerPlayer)
         local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetPerPlayer,UnitTypeAndRatios)
         
-        GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,nil)
+        local unitIDs = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,nil)
+        
+        -- TODO queue stop command so that gs and stuff get unstuck
     end
 end
 
@@ -170,6 +174,9 @@ local function HandleReinforcements()
         reinforceBudget = reinforceBudget + reinforceBudgetGrowth
 end
 
+local function SetupAutoReinforcementBudgets()
+
+end
 
 function gadget:GameFrame(f)
     
@@ -186,4 +193,10 @@ function gadget:GameFrame(f)
 	if (f == 90 or f%1800 == 1) and waveCount < reinforceWaveCount and f ~= 1 then -- after 10 sec and then every min
         HandleReinforcements() 
 	end
+end
+
+function gadget:Initialize()
+    if autoReinforceBudget == 1 then
+        SetupAutoReinforcementBudgets()
+    end
 end

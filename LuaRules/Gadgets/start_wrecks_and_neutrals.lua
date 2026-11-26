@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = 1, -- using 0 causes issues with units not animating among other things
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -29,24 +29,21 @@ local WRECK_TO_UNIT_COST_MULT = 2.5 -- mult to get from wreck -> unit cost
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-local WATER_DAMAGE = (Game.waterDamage > 0)
 local MAP_SIZE_UNIT = 512 --Elmo to lobby mapsize
 
-local maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n") or 2 -- I had a todo that this didnt work but it does seem to?
-local STARTBOX_CIRCLE_CHECK_COUNT = 15
 local STARTBOX_CIRCLE_CHECK_RADIUS = 700
 
-local AREA_CHECK_ID = UnitDefNames["energyfusion"].id -- small profile and water buildable!
 local PLACEMENT_CHECK_ID = UnitDefNames["staticrearm"].id -- a lil bigger, but should be placable often
 
 -- Parameters and Modoptions factored into generation of units
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local MAP_AREA_TO_CAMP_RATIO = 45
-local MAP_AREA_TO_VALUE_MULT = 20
+
+local AUTO_MAP_CAMP_BASE_MULT = 0.02
+local AUTO_MAP_VALUE_BASE_MULT = 0.4 -- flattening the value curve
 local AUTO_MAP_VALUE_OFFSET = -200
-local AUTO_WRECK_COUNT_MULT = 1.5
-local AUTO_WRECK_VALUE_MULT = 0.7
+
+local AUTO_MIN_CAMP_COUNT_MULT = 0.3
 
 local WeWantSpice = true
 
@@ -54,22 +51,26 @@ local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.8
 local NEUTRAL_MOBILE_MIN = 30
 local NEUTRAL_MOBILE_MAX = 70
 local NEUTRAL_EDGE_OFFSET = 500
-local NEUTRAL_CHICKEN_CHANCE = 0 --TODO theres some figuring out to be done but I'll keep this open
-local CENTER_CAMP_MULT = 3
 
-local MEX_SEARCH_RADIUS = MAP_SIZE_UNIT * 1200
+local NEUTRAL_CHICKEN_CHANCE = 0 --TODO theres some figuring out to be done but I'll keep this open
+
+local AUTO_WRECK_COUNT_MULT = 1.5
+local AUTO_WRECK_VALUE_MULT = 0.7
+
+local MEX_SEARCH_RADIUS = MAP_SIZE_UNIT * 1200 --guesstimation
 
 local modOptions = Spring.GetModOptions()
 local autoNeutrals = tonumber(modOptions.starting_auto_neutrals) or 0
 local autoWrecks = tonumber(modOptions.starting_auto_wrecks) or 0
-local autoNeutralsMapToCount =  tonumber(modOptions.starting_auto_neutrals_map_to_count) or MAP_AREA_TO_CAMP_RATIO
-local autoNeutralsMapToValue =  tonumber(modOptions.starting_auto_neutrals_map_to_value) or MAP_AREA_TO_VALUE_MULT
 
-local startingWreckCount = tonumber(modOptions.starting_wrecks_count) or 0
-local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
+local autoNeutralsCountPercentMult =  tonumber(modOptions.starting_auto_neutrals_count_percent)/100 or 1
+local autoNeutralsValuePercentMult =  tonumber(modOptions.starting_auto_neutrals_value_percent)/100 or 1
 
 local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
+
+local startingWreckCount = tonumber(modOptions.starting_wrecks_count) or 0
+local startingWreckValue = tonumber(modOptions.starting_wrecks_value) or 0
 
 --local startingNeutralMobileRatio = tonumber(modOptions.starting_neutral_mobile) or NEUTRAL_MOBILE_RATIO -- I prefer it being variable :O
 local startingNeutralChickenChance = tonumber(modOptions.starting_neutral_chicken_chance) or NEUTRAL_CHICKEN_CHANCE
@@ -130,114 +131,41 @@ local function GetRandomTeamIDFromAllyTeam(allyTeamID)
 	return teamToSpawnOn
 end
 
--- TODO would this be a useful util function? maybe it already exists :o
-local function CheckStartboxOverlap(x,z)
-	for i = 0, maxStartboxcount, 1 do
-		if GG.CheckStartbox(i,x,z) then
-			--Spring.MarkerAddPoint(x, 0, z, "Overlap detected, rerolling")
-			return true
-		end
-	end
-	return false
-end
-
--- TODO would this be a useful util function? maybe it already exists :o
-local function CheckCircularStartboxOverlap(x,z,radius)
-	if CheckStartboxOverlap(x,z) then
-		return true
-	end
-	local rx,rz
-	local degreeIncrement = 360 / STARTBOX_CIRCLE_CHECK_COUNT
-	local currentAngle = 0
-	while currentAngle <= 360 do
-		rx = x + radius * math.cos(currentAngle)
-		rz = z - radius * math.sin(currentAngle)
-		--Spring.MarkerAddPoint(rx, 0, rz, "Circle check")
-		if CheckStartboxOverlap(rx,rz) then
-			return true
-		end
-		currentAngle = currentAngle + degreeIncrement
-	end 
-	return false
-end
-
-local function CheckLavaAndRoughTerrain(x,z)
-	local height = Spring.GetGroundHeight(x, z)
-	if (WATER_DAMAGE and height <= 0) or 
-	(Spring.TestBuildOrder(AREA_CHECK_ID, x, 0 ,z, 0) == 0 and Spring.TestBuildOrder(UnitDefNames["staticmex"].id, x, 0 ,z, 0) == 0) then
-		return true
-	end
-	return false
-end
-
-
--- TODO would this be a useful util function?	
---not all map area is useable!
---> we get a ratio of usable map area
---some maps are water maps!
---> we get a ratio of how much of the usable area is water!
---some maps have pretty big startboxes!
---> if startboxes are more than half the usable map, we ignore them from neutral immunity!
-local function GuesstimateUsableMapArea()
-	local resolution = 256 -- biglag, is there an easier way to do this?
-	local mapStepX = mapSizeX/resolution
-	local mapStepZ = mapSizeZ/resolution
-	local totalArea = mapStepX * mapStepZ
-	local usableArea = 0
-	local waterArea = 0
-	local startBoxArea = 0
-	for xMapUnit = 0.5, mapStepX, 1 do
-		local x = xMapUnit * resolution
-		for zMapUnit = 0.5, mapStepZ, 1 do
-			local z = zMapUnit * resolution
-			--Spring.MarkerAddPoint(x, 0, z, "buildCheck")
-			if CheckLavaAndRoughTerrain(x,z) then
-				--Spring.MarkerAddPoint(x, 0, z, "can't build here mylord")
-			else
-				usableArea = usableArea +1
-				local height = Spring.GetGroundHeight(x, z)
-				if height <= 0 then
-					waterArea = waterArea + 1
-				end
-				if CheckStartboxOverlap(x,z) then
-					startBoxArea = startBoxArea +1
-				end
-			end
-		end
-	end
-	local waterAreaRatio = waterArea/usableArea
-	local startBoxAreaRatio = startBoxArea/usableArea
-	local usableMapRatio = usableArea/totalArea
-	local usableMapArea = (mapSizeX/MAP_SIZE_UNIT * mapSizeZ/MAP_SIZE_UNIT)*usableMapRatio
-	-- maybe there would be a way to determin "hillyness" to filter for spiderness
-	return usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio
-end
-
---could maybe be improved with mex analysis
-local function GuesstimateCampCountAndValueByMapArea(mapArea)
-	--LETS START GUESSTIMATING!!!
+--Stars and Bars thingy. This is half googlesearch vibed
+local function split_integer(totalBudget, splitCount, min_val)
+    min_val = min_val or 0
+	splitCount = splitCount or 1
 	
-	--TODO this system could use improvement
-	-- Log scale assements, maybe mex income additionals
-	-- only value, then should randomise into what sort of split of camps works. Large medium small, massive etcetc.
+	if splitCount == 1 then
+        return { totalBudget }
+    end
 	
-	-- count...
-	-- smallest maps are 8x8 so area 64 -- count can be 1-2, uneven camps are bigger and centered
-	-- some medium small maps are 10x12 so 120 -could stomach 2-3?
-	-- lets go with 45 area per camp base? with how maps work I would need a function to do it well..
-	-- but this estimation is okay
-	local campCount = math.ceil(mapArea/autoNeutralsMapToCount)
+    local remaining = totalBudget - (splitCount * min_val)
+	if remaining <= 0 then
+		Spring.Echo("Total V is too small for N items with the given min_val")
+		remaining = splitCount * min_val
+	end
+
+
+    -- 1. Generate N - 1 random cut-points between 0 and remaining
+    local cuts = {}
+    for i = 1, splitCount - 1 do
+        cuts[i] = math.random(0, remaining)
+    end
+
+    -- 2. Sort the cut-points in ascending order
+    table.sort(cuts)
 	
-	-- value...
-	-- 8x8 -> 64 so 64 * 100 -> 640m ?
-	-- seems a lil much since 
-	-- 10x12 -> 120 so 120 *100 -> 1200m for 2-3 camps?
-	-- we ball, trial and error
-	-- it may be smart to revamp things into a entire map budget split between the amount of camps rather than the inverse
-	-- though this scales the neutrals nicely Imo
-	local campValue = mapArea * autoNeutralsMapToValue + AUTO_MAP_VALUE_OFFSET
+    -- 3. Calculate differences between adjacent cut-points and add min_val
+    local result = {}
+    local prev = 0
+    for i = 1, splitCount - 1 do
+        result[i] = (cuts[i] - prev) + min_val
+        prev = cuts[i]
+    end
+    result[splitCount] = (remaining - prev) + min_val
 	
-	return campCount, campValue, mapArea
+    return result
 end
 
 --------------------------------------------------------------------------------
@@ -319,10 +247,10 @@ local function GetCampSpawnPairPositions(ignoreStartbox)
 	x2,z2 = mapSizeX-x,mapSizeZ-z
 	-- My startbox jutsu has improved!! 
 	while 
-	(CheckCircularStartboxOverlap(x,z,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
-	(CheckCircularStartboxOverlap(x2,z2,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
-	CheckLavaAndRoughTerrain(x,z) or 
-	CheckLavaAndRoughTerrain(x2,z2) do
+	(GG.MapUtilityCheckAnyCircularStartboxOverlap(x,z,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
+	(GG.MapUtilityCheckAnyCircularStartboxOverlap(x2,z2,STARTBOX_CIRCLE_CHECK_RADIUS) and not ignoreStartbox) or 
+	GG.MapUtilityCheckLavaOrRoughTerrain(x,z) or 
+	GG.MapUtilityCheckLavaOrRoughTerrain(x2,z2) do
 		x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
 		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
 		x2,z2 = mapSizeX-x,mapSizeZ-z
@@ -387,15 +315,30 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 	Spring.MarkerAddPoint(x2, 0, z2, "Reports of Remnants")
 end
 
-local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWreckRatio)
+local function SpawnNeutralCamps(inputCampCount,totalCampBudget,mapWaterRatio,additionalWreckRatio)
 	local unitIDs
 	local teamID = GaiaTeamID
-	local wreckBudget = 0
 	local thereBeChickens = false
+	local thereBeUnevenCamps = false
 	local unitIDs
-	--uneven number results in big map center camp
-	if campCount % 2 == 1 then
-		campCount = campCount -1
+	
+	local maxCamps = inputCampCount
+	local minCamps = math.ceil(inputCampCount * AUTO_MIN_CAMP_COUNT_MULT)
+	
+	local campsToSpawn = math.random(minCamps,maxCamps)
+	
+	if campsToSpawn % 2 == 1 then
+		thereBeUnevenCamps = true
+		campsToSpawn = campsToSpawn + 1
+	end
+	
+	local budgetSplits = split_integer(totalCampBudget,campsToSpawn,500)
+	table.sort(budgetSplits)
+	
+	if thereBeUnevenCamps then
+		
+		
+		local campBudget = table.remove(budgetSplits,#budgetSplits)
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
 		if math.random() < startingNeutralChickenChance then
@@ -405,31 +348,41 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 		end
 		local height = Spring.GetGroundHeight(mapSizeX/2,mapSizeZ/2)
 		--if the middle is too rough, or a pond on an otherwise non water map, we make 2 camps instead
-		if CheckLavaAndRoughTerrain(mapSizeX/2,mapSizeZ/2) or (height < 0 and mapWaterRatio < 0.3) then
-			unitIDs = SpawnCampPair(campBudget*(CENTER_CAMP_MULT),sectionGroups,thisMobileRatio,additionalWreckRatio)
-		else			
-			local unitComposition = SetupUnitComposition(campBudget*CENTER_CAMP_MULT,thisMobileRatio,sectionGroups)
-		--Spring.Utilities.TableEcho(unitComposition)
-		if wreckBudget > 0 then
-			local wreckComposition = SetupUnitComposition(wreckBudget*CENTER_CAMP_MULT,math.random())
-			for index, value in ipairs(wreckComposition) do
-				value.wreckChance = 1
-				value.spacing = math.random(32,64)
+		if GG.MapUtilityCheckLavaOrRoughTerrain(mapSizeX/2,mapSizeZ/2) or (height < 0 and mapWaterRatio < 0.3) then			
+			unitIDs = SpawnCampPair(campBudget/2,sectionGroups,thisMobileRatio,additionalWreckRatio)
+		else
+			local moveGroups = nil
+			if height < -25  and mapWaterRatio > 0.3 then -- we do ship things if both camps are in water
+				moveGroups = {"amph","hover","sea"}
+			elseif height < -25 then -- we do amphibious things when theres not too much water
+				moveGroups = {"amph","hover"}
 			end
-			unitComposition = GG.UnitSpawnerAddCompositionLists({unitComposition,wreckComposition})
-		end
-			teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
-			unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
-			PatrolCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
-			if not thereBeChickens then
-				GG.UnitSpawnerBuildMexInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID)
-				GG.UnitSpawnerBuildGeosInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID,(math.random()>0.5))
+			local unitComposition = SetupUnitComposition(campBudget,thisMobileRatio,sectionGroups,moveGroups)
+			--Spring.Utilities.TableEcho(unitComposition)
+			local wreckBudget = 0
+			if additionalWreckRatio ~= 0 then
+				wreckBudget = campBudget * additionalWreckRatio * WRECK_TO_UNIT_COST_MULT
 			end
-			Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of large Remnants")
+			if wreckBudget > 0 then
+				local wreckComposition = SetupUnitComposition(wreckBudget,math.random())
+				for index, value in ipairs(wreckComposition) do
+					value.wreckChance = 1
+					value.spacing = math.random(32,64)
+				end
+				unitComposition = GG.UnitSpawnerAddCompositionLists({unitComposition,wreckComposition})
+			end
+				teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
+				unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
+				PatrolCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
+				if not thereBeChickens then
+					GG.UnitSpawnerBuildMexInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID)
+					GG.UnitSpawnerBuildGeosInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID,(math.random()>0.5))
+				end
+			Spring.MarkerAddPoint(mapSizeX/2, 0, mapSizeZ/2, "Reports of Remnants")
 		end
 	end
 	
-	for i = 1, campCount/2, 1 do
+	for index, budget in ipairs(budgetSplits) do
 		local sectionGroups = nil
 		local thisMobileRatio = math.random(NEUTRAL_MOBILE_MIN,NEUTRAL_MOBILE_MAX)/100
 		--Spring.Echo(thisMobileRatio)
@@ -437,7 +390,7 @@ local function SpawnNeutralCamps(campCount,campBudget,mapWaterRatio,additionalWr
 			sectionGroups = CHICKEN_SECTION_GROUPS
 			thisMobileRatio = 0.8
 		end
-		local theseUnitIDs = SpawnCampPair(campBudget,sectionGroups,thisMobileRatio,additionalWreckRatio)
+		local theseUnitIDs = SpawnCampPair(budget,sectionGroups,thisMobileRatio,additionalWreckRatio)
 	end
 end
 
@@ -475,26 +428,52 @@ local function SpawnWreckClump(wreckFieldCount,wreckFieldValue)
 	end
 end
 
+--could maybe be improved with mex analysis
+local function GuesstimateCampCountAndValueByMapArea(mapArea)
+	--LETS START GUESSTIMATING!!!
+	
+	--TODO this system could use improvement
+	-- Log scale assements, maybe mex income additionals
+	-- only value, then should randomise into what sort of split of camps works. Large medium small, massive etcetc.
+	
+	-- count...
+	-- smallest maps are 8x8 so area 64 -- count can be 1-2, uneven camps are bigger and centered
+	-- some medium small maps are 10x12 so 120 -could stomach 2-3?
+	-- lets go with 45 area per camp base? with how maps work I would need a function to do it well..
+	-- but this estimation is okay
+	local campCount = math.ceil(autoNeutralsCountPercentMult * AUTO_MAP_CAMP_BASE_MULT * mapArea)
+	
+	
+	-- value...
+	-- 8x8 -> 64 so 64 * 100 -> 640m ?
+	-- seems a lil much since 
+	-- 10x12 -> 120 so 120 *100 -> 1200m for 2-3 camps?
+	-- we ball, trial and error
+	-- it may be smart to revamp things into a entire map budget split between the amount of camps rather than the inverse
+	-- though this scales the neutrals nicely Imo
+	--local campValue = mapArea * autoNeutralsMapToValue + AUTO_MAP_VALUE_OFFSET
+	
+	--> this was per camp budget, lets instead try budgeting for all camps
+	
+	local campValue = math.ceil(autoNeutralsValuePercentMult * AUTO_MAP_VALUE_BASE_MULT * mapArea^2) + AUTO_MAP_VALUE_OFFSET 
+	
+	return campCount, campValue, mapArea
+end
 
-
+---> input for count and value. Value is all camps now 
+---> we add if desired, the generated count to that
+---> 
 local function SetupNeutralAndWreckSpawn()
 	
 	-- modoptions act as offsets to generated values if the automatic generation is enabled
 	local neutralCount,neutralValue = startingNeutralCount,startingNeutralValue
 	local wreckCount,wreckValue = startingWreckCount, startingWreckValue
 	
-	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GuesstimateUsableMapArea()
+	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
 	local count,value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
 	
 	if autoNeutrals ~= 0 then
 		neutralCount,neutralValue = neutralCount + count, neutralValue + value
-		if WeWantSpice then
-			if 0.5 > math.random() then
-				neutralCount = neutralCount + 1 -- an extra camp!
-			else
-				neutralValue = neutralValue + math.ceil(neutralValue*1/neutralCount) -- 1 camp of value spread between all
-			end
-		end
 	end
 	if neutralCount > 0 and neutralValue > 0 then
 		SpawnNeutralCamps(neutralCount,neutralValue,waterAreaRatio,startingNeutralWreckRatio)
@@ -502,13 +481,6 @@ local function SetupNeutralAndWreckSpawn()
 	
 	if autoWrecks ~= 0 then
 		wreckCount,wreckValue = wreckCount + count*AUTO_WRECK_COUNT_MULT, wreckValue + value*AUTO_WRECK_VALUE_MULT
-		if WeWantSpice then
-			if 0.5 > math.random() then
-				wreckCount = wreckCount + 1 -- an extra camp!
-			else
-				wreckValue = wreckValue + math.ceil(wreckValue*1/wreckCount) -- 1 camp of value spread between all
-			end
-		end
 	end
 	if wreckCount > 0 and wreckValue > 0 then
 		SpawnWreckClump(wreckCount,wreckValue)
@@ -516,29 +488,33 @@ local function SetupNeutralAndWreckSpawn()
 end
 	
 function gadget:Initialize()
-	maxStartboxcount = Spring.GetGameRulesParam("startbox_max_n")
-	
 	SetupNeutralAndWreckSpawn()
 end
 
 function gadget:GameStart()
 	
-	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GuesstimateUsableMapArea()
-	Spring.Echo("usableArea = "..usableMapArea)
-	Spring.Echo("usableRatio = "..usableMapRatio)
-	Spring.Echo("WaterRatio = "..waterAreaRatio)
-	Spring.Echo("StartboxRatio = "..startBoxAreaRatio)
+	
+
+	
+	
+	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
+	Spring.Echo("Area Guestimation")
+	Spring.Echo(usableMapArea)
+	Spring.Echo(usableMapRatio)
+	Spring.Echo(waterAreaRatio)
+	Spring.Echo(startBoxAreaRatio)
 	
 	local count,value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
-	Spring.Echo("CampCount = "..count)
-	Spring.Echo("CampValue = "..value)
+	Spring.Echo("Value and count Guestimation")
+	Spring.Echo(value)
+	Spring.Echo(count)
+	
+
 	
 	--[[
 	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
 	Spring.Echo("usableArea = "..usableMapArea)
-	Spring.Echo("usableRatio = "..usableMapRatio)
-	Spring.Echo("WaterRatio = "..waterAreaRatio)
-	Spring.Echo("StartboxRatio = "..startBoxAreaRatio)
+
 		Spring.Echo("UTIL TEST!")
 		]]
 end

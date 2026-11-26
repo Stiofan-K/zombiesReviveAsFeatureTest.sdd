@@ -35,7 +35,7 @@ local staticUnits, movetypeDefID, movetypes = VFS.Include("LuaRules/Configs/CAI/
 
 local spTableMerge = Spring.Utilities.MergeTable
 
---Vibecoded Table func! would be good to have as a util func?
+--Googlesearch vibed Table func! would be good to have as a util func?
 local function stringToTable(str)
     -- Wrap the string in a return statement
     local code = "return " .. str
@@ -100,6 +100,9 @@ for unitDefID = 1, #UnitDefs do
                 end
             end
         end
+        
+        --TODO!! Categorise buildings by watedepth into building "movementTags"
+        
         taggedUnitDefIDs[unitDefID] = {sectionTags = sectionTags, classTags = classTags, movementTags = {movementTag}}
         taggedUnitDefNames[unitDefName] = {sectionTags = sectionTags, classTags = classTags, movementTags = {movementTag}}
     end
