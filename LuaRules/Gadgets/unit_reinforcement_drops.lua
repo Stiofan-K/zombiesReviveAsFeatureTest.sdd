@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = math.huge,
+		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -26,8 +26,7 @@ end
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local modOptions = Spring.GetModOptions()
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
-local staticCompositions = allCompositions.staticCompositions
-local mobileCompositions = allCompositions.mobileCompositions
+local reinforceCompositions = allCompositions.reinforceCompositions
 
 
 -- Team setup
@@ -69,12 +68,17 @@ local autoReinforceBudgetMult = tonumber(modOptions.reinforcement_drop_auto_wave
 
 local waveCount = 0
 
+local AUTO_MAP_CAMP_BASE_MULT = 0.02
+local AUTO_MAP_VALUE_BASE_MULT = 0.3 -- flattening the value curve
+local AUTO_MAP_VALUE_OFFSET = -1000
+
+
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
     if not budget then
         budget = 300
     end
     if not compositionType then
-        compositionType = allCompositions.mobileCompositions
+        compositionType = reinforceCompositions
     end
     if (budget < 500) then
         return compositionType.tinyCost[math.random(#compositionType.tinyCost)]
@@ -173,11 +177,6 @@ local function HandleReinforcements()
     reinforceBudget = reinforceBudget + reinforceBudgetGrowth
 end
 
-local AUTO_MAP_CAMP_BASE_MULT = 0.02
-local AUTO_MAP_VALUE_BASE_MULT = 0.4 -- flattening the value curve
-local AUTO_MAP_VALUE_OFFSET = -200
-
-
 --could maybe be improved with mex analysis
 local function GuesstimateCampCountAndValueByMapArea(mapArea)
 
@@ -214,13 +213,13 @@ function gadget:GameFrame(f)
 	end
     
 	if (f == 90 or f%1800 == 1) and waveCount < reinforceWaveMaxCount and f ~= 1 then -- after 10 sec and then every min
-        Spring.Echo("did we get here")
+        --Spring.Echo("did we get here")
         HandleReinforcements() 
 	end
 end
 
 function gadget:Initialize()
-    if autoReinforceBudget == 1 then
+    if autoReinforceBudget ~= 0 then
         SetupAutoReinforcementBudgets()
     end
 end

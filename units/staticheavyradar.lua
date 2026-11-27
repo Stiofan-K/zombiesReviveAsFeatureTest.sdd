@@ -15,7 +15,7 @@ return { staticheavyradar = {
   corpse                        = [[DEAD]],
 
   customParams                  = {
-    unit_class_tags = {sectiontags = "baseGame", classtags ="staticSupport"},
+    unit_class_tags = {sectiontags = "baseGame", classtags ="radar"},
     modelradius    = [[16]],
     removewait     = 1,
     removestop     = 1,

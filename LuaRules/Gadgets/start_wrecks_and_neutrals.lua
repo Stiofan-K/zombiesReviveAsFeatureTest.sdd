@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0, -- using 0 causes issues with units not animating among other things
+		layer     = 1, -- using 0 causes issues with units not animating among other things
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -39,17 +39,17 @@ local PLACEMENT_CHECK_ID = UnitDefNames["staticrearm"].id -- a lil bigger, but s
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local AUTO_MAP_CAMP_BASE_MULT = 0.02
-local AUTO_MAP_VALUE_BASE_MULT = 0.4 -- flattening the value curve
+local AUTO_MAP_CAMP_BASE_MULT = 0.01
+local AUTO_MAP_VALUE_BASE_MULT = 0.6 -- flattening the value curve
 local AUTO_MAP_VALUE_OFFSET = -200
 
 local AUTO_MIN_CAMP_COUNT_MULT = 0.3
 
 local WeWantSpice = true
 
-local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.8
+local NEUTRAL_ADDITIONAL_WRECK_RATIO = 0.6
 local NEUTRAL_MOBILE_MIN = 30
-local NEUTRAL_MOBILE_MAX = 70
+local NEUTRAL_MOBILE_MAX = 50
 local NEUTRAL_EDGE_OFFSET = 500
 
 local NEUTRAL_CHICKEN_CHANCE = 0 --TODO theres some figuring out to be done but I'll keep this open
@@ -78,9 +78,9 @@ local startingNeutralWreckRatio = tonumber(modOptions.starting_neutral_wrecks_ra
 
 -- Compositions and nogozones setup
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
-local mobileCompositions = allCompositions.mobileCompositions
-local staticCompositions = allCompositions.staticCompositions
-local mixedCompositions = allCompositions.mixedCompositions
+local mobileCompositions = allCompositions.neutralCamps.mobileCompositions
+local staticCompositions = allCompositions.neutralCamps.staticCompositions
+local pointsOfInterestCompositions = allCompositions.neutralCamps.pointsOfInterest
 local mexAndGeoNoGoZones = GG.NoGoZonesGetMexAndGeoNoGoZones()
 local localNoGoZones = mexAndGeoNoGoZones
 
@@ -111,6 +111,8 @@ else -- anything else translates to gaia neutrals
 	neutralAllyTeamID = GaiaAllyTeamID
 end
 
+
+local neutralUnitIds = {}
 
 --Utility
 --------------------------------------------------------------------------------
@@ -203,22 +205,34 @@ end
 
 local function SetupUnitComposition(campValue,mobileRatio,sectionGroups,moveGroups)
 	local unitComposition = {}
+	-- 1/6 budget goes to POI!
+	local poiBudget = campValue * 0.6
+	local remainingValue = campValue - campValue  * 0.6
+	
+	local poiGroupComposition = GetGroupCompositionByBudgetAndType(poiBudget,pointsOfInterestCompositions)
+	poiGroupComposition = GG.UnitSpawnerCompositionBuilder(poiBudget,poiGroupComposition,sectionGroups,moveGroups)
+	
+	
 	if mobileRatio == 1 then
-		local mobileComposition = GetGroupCompositionByBudgetAndType(campValue,mobileCompositions)
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,mobileComposition,sectionGroups,moveGroups)
+		local mobileComposition = GetGroupCompositionByBudgetAndType(remainingValue,mobileCompositions)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(remainingValue,mobileComposition,sectionGroups,moveGroups)
 	elseif mobileRatio == 0 then
-		local staticComposition = GetGroupCompositionByBudgetAndType(campValue,staticCompositions)
-		unitComposition = GG.UnitSpawnerCompositionBuilder(campValue,staticComposition,sectionGroups,moveGroups)
+		local staticComposition = GetGroupCompositionByBudgetAndType(remainingValue,staticCompositions)
+		unitComposition = GG.UnitSpawnerCompositionBuilder(remainingValue,staticComposition,sectionGroups,moveGroups)
 	else
-		local mobileBudget = campValue * mobileRatio
-		local staticBudget = campValue - mobileBudget
+		local mobileBudget = remainingValue * mobileRatio
+		local staticBudget = remainingValue - mobileBudget
 		unitComposition = GetMixedComposition(staticBudget,mobileBudget,sectionGroups,moveGroups)
 	end
-	return unitComposition
+	local returnComposition = GG.UnitSpawnerAddCompositionLists({poiGroupComposition,unitComposition})
+	return returnComposition
 end
 
 local function PatrolCampUnits(x,z,unitIDs)
 	for unitID, _ in pairs(unitIDs) do
+		
+		--TODO? adding all neutrals here since all neutrals do want to patrol
+		neutralUnitIds[unitID] = unitID
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitDef = UnitDefs[unitDefID]
 		
@@ -323,7 +337,11 @@ local function SpawnNeutralCamps(inputCampCount,totalCampBudget,mapWaterRatio,ad
 	local unitIDs
 	
 	local maxCamps = inputCampCount
-	local minCamps = math.ceil(inputCampCount * AUTO_MIN_CAMP_COUNT_MULT)
+	local minCamps = math.floor(inputCampCount * AUTO_MIN_CAMP_COUNT_MULT)
+	
+	if minCamps < 1 then 
+		minCamps = 1 
+	end
 	
 	local campsToSpawn = math.random(minCamps,maxCamps)
 	
@@ -485,6 +503,16 @@ local function SetupNeutralAndWreckSpawn()
 	if wreckCount > 0 and wreckValue > 0 then
 		SpawnWreckClump(wreckCount,wreckValue)
 	end
+	
+	-- todo modoption to show on init
+	for unitID, _ in pairs(neutralUnitIds) do
+		Spring.SetUnitAlwaysVisible(unitID, true)
+		local allyTeamList = Spring.GetAllyTeamList()
+		for i = 1, #allyTeamList do
+			local allyTeamID = allyTeamList[i]
+			Spring.SetUnitLosState(unitID, allyTeamID, 15)
+		end
+	end
 end
 	
 function gadget:Initialize()
@@ -493,7 +521,15 @@ end
 
 function gadget:GameStart()
 	
-	
+	--todo modoption to hide on gamestart
+	for unitID, _ in pairs(neutralUnitIds) do
+		Spring.SetUnitAlwaysVisible(unitID, false)
+		local allyTeamList = Spring.GetAllyTeamList()
+		for i = 1, #allyTeamList do
+			local allyTeamID = allyTeamList[i]
+			Spring.SetUnitLosState(unitID, allyTeamID, 0)
+		end
+	end
 
 	
 	

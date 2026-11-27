@@ -54,7 +54,7 @@ local structureConfig = {
 		unitDef.footprintz = 4
 		unitDef.metalcost = 5000
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="ecoSupport"}]]
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ="greeble"}]]
 		unitDef.customparams.soundselect = "cloaker_select"
 
 		unitDef.collisionvolumescales = [[60 70 60]]
@@ -86,7 +86,7 @@ local structureConfig = {
 		unitDef.canmove = true
 		unitDef.canattack = true
 		unitDef.workertime = 10
-		unitDef.buildoptions = { [[gunshiptrans]], [[gunshipheavytrans]] }
+		unitDef.buildoptions = { [[gunshiptrans]], [[gunshipheavytrans]], [[striderdante]], [[striderarty]],[[striderscorpion]], } --whynaut give this a lil better stuff?
 		unitDef.customparams.landflystate = [[0]]
 		unitDef.customparams.factory_land_state = 0
 
@@ -250,7 +250,7 @@ local structureConfig = {
 		unitDef.footprintz = 6
 		unitDef.metalcost = 800
 
-		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"staticStrategic","staticSupport"}}]]
+		unitDef.customparams.unit_class_tags = [[{sectiontags = "planetWars", classtags ={"staticStrategic","staticSupport","radar"}}]]
 		unitDef.customparams.soundselect = "radar_select"
 
 		unitDef.customparams.outline_x = 260

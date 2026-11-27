@@ -240,17 +240,19 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		local classGroups = nil
 		local sectionGroups = sectionGroups
 		local budgetFraction = 1
-		local multiRandomise = math.random() > 0.3
+		local multiRandomise = true --math.random() > 0.3
 		local minUnits = 0
 		local wreckChance = 0
+		local spacing = nil
 		local unitCount
 		if type(data) == "table" and data.classGroup then
 			classGroups = data.classGroup or classGroups
-			sectionGroups = sectionGroups or sectionGroups
+			sectionGroups =  data.sectionGroups or sectionGroups
 			budgetFraction = data.budgetFraction or budgetFraction
 			multiRandomise = data.multiRandomise or multiRandomise
 			minUnits = data.minUnits or minUnits
 			wreckChance = data.wreckChance or wreckChance
+			spacing = data.spacing or nil
 		elseif type(data) == "number" then
 			classGroups = index
 			budgetFraction = data or 1
@@ -304,6 +306,7 @@ local function CompositionBuilder(budget,unitGroupAndParams,sectionGroups,moveme
 		--Spring.Utilities.TableEcho(typeComposition)
 		for index, value in ipairs(typeComposition) do
 			value.wreckChance = wreckChance
+			value.spacing = spacing
 		end
 		returnComposition = AddCompositionLists({returnComposition,typeComposition})
 	end
