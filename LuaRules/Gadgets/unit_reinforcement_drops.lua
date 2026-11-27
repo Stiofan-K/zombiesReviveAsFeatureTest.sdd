@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = math.huge,
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -60,11 +60,12 @@ end
 local teamSpawnPosition = {}
 local gaiaReinforcements = tonumber(modOptions.reinforce_drop_gaia) or 0
 local reinforceBudget =  tonumber(modOptions.reinforce_drop_base) or 0
-local reinforceWaveCount = tonumber(modOptions.reinforce_drop_wave_count) or 10
-local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 300
+local reinforceWaveMaxCount = tonumber(modOptions.reinforce_drop_wave_count) or 0
+local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 0
 local reinforceGaiaMult = tonumber(modOptions.reinforce_drop_gaia_mult) or 1
 
-local autoReinforceBudget = tonumber(modOptions.reinforcement_drop_auto_budget) or 0
+local autoReinforceBudget = tonumber(modOptions.reinforcement_drop_auto) or 0
+local autoReinforceBudgetMult = tonumber(modOptions.reinforcement_drop_auto_wave_mult) or 4
 
 local waveCount = 0
 
@@ -98,9 +99,6 @@ local function TeamReinforcements(allyTeamIDInput,budgetInput)
             end
         end
     end
-    
-    local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budgetInput)
-    local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetInput,UnitTypeAndRatios)
     --[[
     Spring.Echo("ReinforceCompUnits")
     for key, value in pairs(unitComposition) do
@@ -162,20 +160,45 @@ end
 
 
 local function HandleReinforcements()
-        waveCount = waveCount + 1
-        if reinforceBudget > 0 then
-            if neutralAllyTeamID then
-                TeamReinforcements(neutralAllyTeamID,reinforceBudget)
-            end
-            if gaiaReinforcements ~= 0 then
-                GaiaReinforcements(reinforceBudget*reinforceGaiaMult)
-            end
+    waveCount = waveCount + 1
+    Spring.Echo(reinforceBudget)
+    if reinforceBudget > 0 then
+        if neutralAllyTeamID then
+            TeamReinforcements(neutralAllyTeamID,reinforceBudget)
         end
-        reinforceBudget = reinforceBudget + reinforceBudgetGrowth
+        if gaiaReinforcements ~= 0 then
+            GaiaReinforcements(reinforceBudget*reinforceGaiaMult)
+        end
+    end
+    reinforceBudget = reinforceBudget + reinforceBudgetGrowth
 end
 
-local function SetupAutoReinforcementBudgets()
+local AUTO_MAP_CAMP_BASE_MULT = 0.02
+local AUTO_MAP_VALUE_BASE_MULT = 0.4 -- flattening the value curve
+local AUTO_MAP_VALUE_OFFSET = -200
 
+
+--could maybe be improved with mex analysis
+local function GuesstimateCampCountAndValueByMapArea(mapArea)
+
+	local campCount = math.ceil(AUTO_MAP_CAMP_BASE_MULT * mapArea)	
+	local campValue = math.ceil(AUTO_MAP_VALUE_BASE_MULT * mapArea^2) + AUTO_MAP_VALUE_OFFSET 
+	
+	return campCount, campValue
+end
+
+
+
+local function SetupAutoReinforcementBudgets()
+	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
+    
+    local count, value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
+    
+    local waveValue = value/count
+    
+    reinforceBudget = (reinforceBudget or 0) + waveValue * autoReinforceBudgetMult
+    
+    reinforceWaveMaxCount = (reinforceWaveMaxCount or 0) + count
 end
 
 function gadget:GameFrame(f)
@@ -190,7 +213,8 @@ function gadget:GameFrame(f)
         end
 	end
     
-	if (f == 90 or f%1800 == 1) and waveCount < reinforceWaveCount and f ~= 1 then -- after 10 sec and then every min
+	if (f == 90 or f%1800 == 1) and waveCount < reinforceWaveMaxCount and f ~= 1 then -- after 10 sec and then every min
+        Spring.Echo("did we get here")
         HandleReinforcements() 
 	end
 end

@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		author    = "Stiofan",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = 1, -- using 0 causes issues with units not animating among other things
+		layer     = 0, -- using 0 causes issues with units not animating among other things
 		enabled   = true  --  loaded by default?
 	}
 end
@@ -63,8 +63,8 @@ local modOptions = Spring.GetModOptions()
 local autoNeutrals = tonumber(modOptions.starting_auto_neutrals) or 0
 local autoWrecks = tonumber(modOptions.starting_auto_wrecks) or 0
 
-local autoNeutralsCountPercentMult =  tonumber(modOptions.starting_auto_neutrals_count_percent)/100 or 1
-local autoNeutralsValuePercentMult =  tonumber(modOptions.starting_auto_neutrals_value_percent)/100 or 1
+local autoNeutralsCountPercentMult =  tonumber(modOptions.starting_auto_neutrals_count_percent) or 100
+local autoNeutralsValuePercentMult =  tonumber(modOptions.starting_auto_neutrals_value_percent) or 100
 
 local startingNeutralCount = tonumber(modOptions.starting_neutral_count) or 0
 local startingNeutralValue = tonumber(modOptions.starting_neutral_value) or 0
@@ -243,7 +243,7 @@ local function GetCampSpawnPairPositions(ignoreStartbox)
 	local x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
 	local x2,z2
 	local iteration = 0
-	x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
+	x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},true,localNoGoZones)
 	x2,z2 = mapSizeX-x,mapSizeZ-z
 	-- My startbox jutsu has improved!! 
 	while 
@@ -252,7 +252,7 @@ local function GetCampSpawnPairPositions(ignoreStartbox)
 	GG.MapUtilityCheckLavaOrRoughTerrain(x,z) or 
 	GG.MapUtilityCheckLavaOrRoughTerrain(x2,z2) do
 		x,z = math.random(mapOffsetX,mapSizeX-mapOffsetX),math.random(mapOffsetZ,mapSizeZ-mapOffsetZ)
-		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},false,localNoGoZones)
+		x,z = GG.NoGoZonesGetValidSpawnPositionForUnit(PLACEMENT_CHECK_ID,{x,z},true,localNoGoZones)
 		x2,z2 = mapSizeX-x,mapSizeZ-z
 		if iteration > 10 then
 			x,z = mapSizeX/2,mapSizeZ/2
@@ -441,7 +441,7 @@ local function GuesstimateCampCountAndValueByMapArea(mapArea)
 	-- some medium small maps are 10x12 so 120 -could stomach 2-3?
 	-- lets go with 45 area per camp base? with how maps work I would need a function to do it well..
 	-- but this estimation is okay
-	local campCount = math.ceil(autoNeutralsCountPercentMult * AUTO_MAP_CAMP_BASE_MULT * mapArea)
+	local campCount = math.ceil(autoNeutralsCountPercentMult/100 * AUTO_MAP_CAMP_BASE_MULT * mapArea)
 	
 	
 	-- value...
@@ -455,9 +455,9 @@ local function GuesstimateCampCountAndValueByMapArea(mapArea)
 	
 	--> this was per camp budget, lets instead try budgeting for all camps
 	
-	local campValue = math.ceil(autoNeutralsValuePercentMult * AUTO_MAP_VALUE_BASE_MULT * mapArea^2) + AUTO_MAP_VALUE_OFFSET 
+	local campValue = math.ceil(autoNeutralsValuePercentMult/100 * AUTO_MAP_VALUE_BASE_MULT * mapArea^2) + AUTO_MAP_VALUE_OFFSET 
 	
-	return campCount, campValue, mapArea
+	return campCount, campValue
 end
 
 ---> input for count and value. Value is all camps now 

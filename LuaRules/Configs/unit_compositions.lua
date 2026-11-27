@@ -130,22 +130,22 @@ local allCompositions = {
         },
         highCost = { -- less than 7500 cost, demis and some light striders and big army comps
             {assault = 1,artillery = 1,raider = 0.5,},
-            {striderDemi = 1,raider = 0.2,},
+            {striderDemi = 1,raider = 0.2,aerialAA = 1,},
             {striderDemi = 1,antiSub = 0.5,},
             {aerialAA = 1,bomberLight = 1, assault = 1},
-            {bomberHeavy = 1,striderDemi = 1},
+            {bomberHeavy = 1,striderDemi = 1,antiSub = 0.5,},
             {striderMedium = 1,skirm =1,{classGroup = "support", budgetFraction = 0, minUnits = 1,},},
             {striderDemi = 1,assault = 1},
             {antiHeavy = 1,assault = 1,artillery = 1,raider = 0.5,}
         },
         ludicrousCost = {-- 7500 or more, anything goes! but we may want another tier
-            {antiHeavy = 1,assault = 1,artillery = 1,raider = 0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
+            {antiHeavy = 1,assault = 1,artillery = 1,raider = 0.5,constructor = 0.1,skirm = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
             {stirderDemi = 1,assault = 1,artillery = 1,raider = 0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
-            {striderDemi = 1,bomberHeavy = 1},
+            {striderDemi = 1,bomberHeavy = 1,aerialAA = 1,constructor = 0.1,assault = 1,skirm = 1,},
             {striderMedium = 3,assault = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
             {striderMedium = 1,striderDemi = 1,antiAir = 0.5,raider=0.5,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
-            {striderDemi = 1,aerialAA = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
-            {striderHeavy = 1, striderMedium = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}}
+            {striderDemi = 1,aerialAA = 1,constructor = 0.1,assault = 1,skirm = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}},
+            {striderHeavy = 1, striderMedium = 1,aerialAA = 1,constructor = 0.1,assault = 1,skirm = 1,{classGroup = "support", budgetFraction = 0, minUnits = 1,}}
         }
     },
     -- mix of static an mobile units

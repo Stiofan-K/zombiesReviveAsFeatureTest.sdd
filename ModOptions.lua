@@ -1203,6 +1203,26 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
     step=1,
   },
   {
+		key     = "reinforcement_drop_auto",
+		name    = "Automatic reinforcement budget",
+		desc    = "If the budget and wavecount should be calculated by mapsize. the other modifiers become aditions",
+		section = 'mapsettings',
+    type   = 'bool',
+    def    = false,
+	},
+  {
+		key     = "reinforcement_drop_auto_wave_mult",
+		name    = "Auto Wave value multiplier ",
+		desc    = "Multiplier on the automatic wave value.",
+		section = 'mapsettings',
+    type   = 'number',
+    def=4,
+    min=0,
+    max=100,
+    step=0.01,
+  },
+ 
+  {
 		key     = "reinforce_drop_wave_count",
 		name    = "Reinforcement Drop wave count",
 		desc    = "How many reinforcement waves will arrive, one every minute.",

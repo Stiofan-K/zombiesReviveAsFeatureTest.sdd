@@ -52,7 +52,7 @@ end
 -- TODO would this be a useful util function? maybe it already exists :o
 local function CheckAnyCircularStartboxOverlap(x,z,radius,checkDensity)
 	if CheckAnyStartboxOverlap(x,z) then
-		Spring.MarkerAddPoint(x, 0, z, "In any startbox!")
+		--Spring.MarkerAddPoint(x, 0, z, "In any startbox!")
 		return true
 	end
 	if not checkDensity then
@@ -65,7 +65,7 @@ local function CheckAnyCircularStartboxOverlap(x,z,radius,checkDensity)
 		rx = x + radius * math.cos(currentAngle)
 		rz = z - radius * math.sin(currentAngle)
 		if CheckAnyStartboxOverlap(rx,rz) then
-			Spring.MarkerAddPoint(rx, 0, rz, "Circle check in startbox!")
+			--Spring.MarkerAddPoint(rx, 0, rz, "Circle check in startbox!")
 			return true
 		end
 		currentAngle = currentAngle + degreeIncrement
