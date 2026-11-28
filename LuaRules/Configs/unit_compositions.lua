@@ -61,13 +61,13 @@ local allCompositions = {
                 {{classGroup = "striderMedium", budgetFraction = 0, minUnits = 1, wreckChance = 1},staticSupport = 1,ecoSupport = 1, ecoLight = 1}
             },
             mediumCost = { --less than 3000 cost
-                {{classGroup = "ecoSupport",sectionGroups = {"planetWars"}, spacing = 0, multiRandomise = false},factory = 1,ecoSupport = 1, ecoLight = 1},
-                {{classGroup = "staticSupport",sectionGroups = {"planetWars"},budgetFraction = 0.5,},factory = 1,ecoSupport = 1},
-                {{classGroup = "staticSupport",sectionGroups = {"planetWars"},},{classGroup = "ecoSupport",sectionGroups = {"planetWars"},spacing = 0,},factory = 1,ecoSupport = 1, ecoLight = 1},
+                {{classGroup = "ecoSupport",sectionGroups = {"planetWars"}, spacing = 0, multiRandomise = false},factory = 1,ecoSupport = 1, ecoLight = 0.5},
+                {{classGroup = "staticSupport",sectionGroups = {"planetWars"},budgetFraction = 0.5,},factory = 1,ecoSupport = 1,ecoLight = 0.5},
+                {{classGroup = "staticSupport",sectionGroups = {"planetWars"},},{classGroup = "ecoSupport",sectionGroups = {"planetWars"},spacing = 0,},factory = 1,ecoSupport = 1, ecoLight = 0.5},
                 {ecoHeavy = 1 ,factory = 1,ecoSupport = 0.5,ecoLight = 0.5},
-                {{classGroup = "ecoSupport",sectionGroups = {"planetWars"}, spacing = 0, multiRandomise = false}, turretaaheavy = 3,ecoSupport = 1, ecoLight = 1},
-                {{classGroup = "factoryplane", minUnits = 1},pw_bomberfac = 1, {classGroup = "staticrearm",budgetFraction = 2, spacing = 0},bomberLight = 3, ecoLight = 1},
-                {staticStrategic = 1,ecoHeavy = 1 ,{classGroup = "ecoSupport",sectionGroups = {"planetWars"}},factory = 1,turretsHeavy = 1,ecoSupport = 0.5, ecoLight = 1},
+                {{classGroup = "ecoSupport",sectionGroups = {"planetWars"}, spacing = 0, multiRandomise = false}, turretaaheavy = 3,ecoSupport = 1, ecoLight = 0.5},
+                {{classGroup = "factoryplane", minUnits = 1},pw_bomberfac = 1, {classGroup = "staticrearm",budgetFraction = 2, spacing = 0},bomberLight = 3, ecoLight = 0.5},
+                {staticStrategic = 1,ecoHeavy = 1 ,{classGroup = "ecoSupport",sectionGroups = {"planetWars"}},factory = 1,turretsHeavy = 1,ecoSupport = 0.5, ecoLight = 0.5},
             },
             highCost = { -- less than 7500 cost
                 {{classGroup = "ecoSupport",sectionGroups = {"planetWars"}, spacing = 0,},ecoHeavy = 1 ,factory = 1,turretsHeavy = 1,ecoSupport = 0.5,},

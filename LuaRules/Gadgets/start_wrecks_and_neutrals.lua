@@ -228,16 +228,17 @@ local function SetupUnitComposition(campValue,mobileRatio,sectionGroups,moveGrou
 	return returnComposition
 end
 
-local function PatrolCampUnits(x,z,unitIDs)
+local function HandleCampUnits(x,z,unitIDs)
 	for unitID, _ in pairs(unitIDs) do
 		
 		--TODO? adding all neutrals here since all neutrals do want to patrol
 		neutralUnitIds[unitID] = unitID
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitDef = UnitDefs[unitDefID]
+		local unitTeam = Spring.GetUnitTeam(unitID)
 		
 		-- factories
-		if unitDef.isFactory then
+		if unitDef.isFactory and neutralAllyTeamID == GaiaAllyTeamID then
 			--TODO check if silo does things correctly. aka if the missiles are on freefire
 			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, 2, 0) -- we set units to roam and attack nearby enemies!
 			GG.Zombies.SetRandomFactoryOrders(unitID, unitDefID) -- random queued units!
@@ -311,7 +312,7 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 	local unitIDs2Pod = nil
 	local teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 	unitIDs1Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,localNoGoZones)
-	PatrolCampUnits(x,z,unitIDs1Pod)
+	HandleCampUnits(x,z,unitIDs1Pod)
 	if sectionGroups ~= CHICKEN_SECTION_GROUPS then
 		GG.UnitSpawnerBuildMexInRadius(x,z,MEX_SEARCH_RADIUS,teamID)
 		GG.UnitSpawnerBuildGeosInRadius(x,z,MEX_SEARCH_RADIUS,teamID,(math.random()>0.5))
@@ -321,7 +322,7 @@ local function SpawnCampPair(campBudget,sectionGroups,mobileRatio,additionalWrec
 	
 	teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 	unitIDs2Pod,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,x2,z2,teamID,localNoGoZones)
-	PatrolCampUnits(x2,z2,unitIDs2Pod)
+	HandleCampUnits(x2,z2,unitIDs2Pod)
 	if sectionGroups ~= CHICKEN_SECTION_GROUPS then -- nogozones make the order of opperations not matter for spawning these later, so thats neat!
 		GG.UnitSpawnerBuildMexInRadius(x2,z2,MEX_SEARCH_RADIUS,teamID)
 		GG.UnitSpawnerBuildGeosInRadius(x2,z2,MEX_SEARCH_RADIUS,teamID,(math.random()>0.5))
@@ -391,7 +392,7 @@ local function SpawnNeutralCamps(inputCampCount,totalCampBudget,mapWaterRatio,ad
 			end
 				teamID = GetRandomTeamIDFromAllyTeam(neutralAllyTeamID)
 				unitIDs,localNoGoZones = GG.UnitSpawnerQueueListSpawn(unitComposition,mapSizeX/2,mapSizeZ/2,teamID,localNoGoZones)
-				PatrolCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
+				HandleCampUnits(mapSizeX/2,mapSizeZ/2,unitIDs)
 				if not thereBeChickens then
 					GG.UnitSpawnerBuildMexInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID)
 					GG.UnitSpawnerBuildGeosInRadius(mapSizeX/2,mapSizeZ/2,MEX_SEARCH_RADIUS*1.3,teamID,(math.random()>0.5))
@@ -521,13 +522,33 @@ end
 
 function gadget:GameStart()
 	
-	--todo modoption to hide on gamestart
 	for unitID, _ in pairs(neutralUnitIds) do
+		
+		local unitDefId = Spring.GetUnitDefID(unitID)
+		local unitDef = UnitDefs[unitDefId]
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		
+		-- TODO put this in spawner api
+		--manually add storage since it seems to break
+		if unitDef.metalStorage > 0 then
+			local _, storage = Spring.GetTeamResources(unitTeam,"metal")
+			storage = storage + unitDef.metalStorage
+			Spring.SetTeamResource(unitTeam,"ms",storage)
+		end
+		if unitDef.energyStorage > 0 then
+			local _, storage = Spring.GetTeamResources(unitTeam,"energy")
+			storage = storage + storage
+			Spring.SetTeamResource(unitTeam,"es",storage)
+		end
+		
+		--todo modoption to hide on gamestart
 		Spring.SetUnitAlwaysVisible(unitID, false)
 		local allyTeamList = Spring.GetAllyTeamList()
 		for i = 1, #allyTeamList do
 			local allyTeamID = allyTeamList[i]
-			Spring.SetUnitLosState(unitID, allyTeamID, 0)
+			if allyTeamID ~= neutralAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
+				Spring.SetUnitLosState(unitID, allyTeamID, 0)
+			end
 		end
 	end
 

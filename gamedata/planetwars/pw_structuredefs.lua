@@ -473,7 +473,7 @@ local structureConfig = {
 
 		unitDef.footprintx = 12
 		unitDef.footprintz = 12
-		unitDef.metalcost = 2000
+		unitDef.metalcost = 5000
 
 		unitDef.explodeas = "NUCLEAR_MISSILE"
 		unitDef.selfdestructas = "NUCLEAR_MISSILE"

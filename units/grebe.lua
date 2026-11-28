@@ -85,6 +85,7 @@ return { grebe = {
       soundTrigger            = true,
       sprayangle              = 512,
       turret                  = true,
+      waterWeapon             = true,
       weaponType              = [[Cannon]],
       weaponVelocity          = 400,
     },

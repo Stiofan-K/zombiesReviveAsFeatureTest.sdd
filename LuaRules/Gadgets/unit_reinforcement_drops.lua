@@ -28,6 +28,7 @@ local modOptions = Spring.GetModOptions()
 local allCompositions = VFS.Include("LuaRules/Configs/unit_compositions.lua")
 local reinforceCompositions = allCompositions.reinforceCompositions
 
+local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = 0,0,0,0
 
 -- Team setup
 --------------------------------------------------------------------------------
@@ -64,13 +65,14 @@ local reinforceBudgetGrowth = tonumber(modOptions.reinforce_drop_growth) or 0
 local reinforceGaiaMult = tonumber(modOptions.reinforce_drop_gaia_mult) or 1
 
 local autoReinforceBudget = tonumber(modOptions.reinforcement_drop_auto) or 0
-local autoReinforceBudgetMult = tonumber(modOptions.reinforcement_drop_auto_wave_mult) or 4
+local autoReinforceBudgetMult = tonumber(modOptions.reinforcement_drop_auto_value_mult_percent) or 100
 
 local waveCount = 0
 
-local AUTO_MAP_CAMP_BASE_MULT = 0.02
-local AUTO_MAP_VALUE_BASE_MULT = 0.3 -- flattening the value curve
-local AUTO_MAP_VALUE_OFFSET = -1000
+local AUTO_WAVE_COUNT_BASE_MULT = 0.02
+local AUTO_WAVE_VALUE_BASE_MULT = 1.3 -- flattening the value curve
+local AUTO_WAVE_VALUE_OFFSET = -200
+local AUTO_WAVE_COUNT_OFFSET = 1
 
 
 local function GetGroupCompositionByBudgetAndType(budget,compositionType)
@@ -114,13 +116,26 @@ local function TeamReinforcements(allyTeamIDInput,budgetInput)
     for index, teamID in ipairs(teamIDs) do
         local position = teamSpawnPosition[teamID]
         local x,z = position[1],position[2]
+        local height = Spring.GetGroundHeight(x,z)
+        local moveGroups = nil
+        if height < -25  and waterAreaRatio > 0.3 then -- we do ship things if the spawn is in water and there is alot of water on the map
+            moveGroups = {"amph","hover","sea"}
+        elseif height < 0 then -- we do amphibious things when theres not too much water
+            moveGroups = {"amph","hover"}
+        end
+        
         -- everyone gets their own comps! yay!
         local UnitTypeAndRatios = GetGroupCompositionByBudgetAndType(budgetPerPlayer)
-        local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetPerPlayer,UnitTypeAndRatios)
+        local unitComposition = GG.UnitSpawnerCompositionBuilder(budgetPerPlayer,UnitTypeAndRatios,nil,moveGroups)
         
         local unitIDs = GG.UnitSpawnerQueueListSpawn(unitComposition,x,z,teamID,nil)
         
-        -- TODO queue stop command so that gs and stuff get unstuck
+        for unitID, _ in pairs(unitIDs) do
+            Spring.GiveOrderToUnit(unitID,CMD.STOP)
+            
+            --TODO how are know if unit has toggle?
+            --Spring.GiveOrderToUnit(unitID,CMD.CMD_AP_FLY_STATE, 1, 0)
+        end
     end
 end
 
@@ -165,7 +180,7 @@ end
 
 local function HandleReinforcements()
     waveCount = waveCount + 1
-    Spring.Echo(reinforceBudget)
+    --Spring.Echo(reinforceBudget)
     if reinforceBudget > 0 then
         if neutralAllyTeamID then
             TeamReinforcements(neutralAllyTeamID,reinforceBudget)
@@ -178,24 +193,23 @@ local function HandleReinforcements()
 end
 
 --could maybe be improved with mex analysis
-local function GuesstimateCampCountAndValueByMapArea(mapArea)
+local function GuesstimateWaveCountAndValueByMapArea(mapArea)
 
-	local campCount = math.ceil(AUTO_MAP_CAMP_BASE_MULT * mapArea)	
-	local campValue = math.ceil(AUTO_MAP_VALUE_BASE_MULT * mapArea^2) + AUTO_MAP_VALUE_OFFSET 
+	local waveCount = math.ceil(AUTO_WAVE_COUNT_BASE_MULT * mapArea) + AUTO_WAVE_COUNT_OFFSET
+	local waveValue = math.ceil(autoReinforceBudgetMult/100 * AUTO_WAVE_VALUE_BASE_MULT * mapArea^2) + AUTO_WAVE_VALUE_OFFSET 
 	
-	return campCount, campValue
+	return waveCount, waveValue
 end
 
 
-
 local function SetupAutoReinforcementBudgets()
-	local usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
+	usableMapArea,usableMapRatio,waterAreaRatio,startBoxAreaRatio = GG.MapUtilityGetMapArea()
     
-    local count, value = GuesstimateCampCountAndValueByMapArea(usableMapArea)
+    local count, value = GuesstimateWaveCountAndValueByMapArea(usableMapArea)
     
     local waveValue = value/count
     
-    reinforceBudget = (reinforceBudget or 0) + waveValue * autoReinforceBudgetMult
+    reinforceBudget = (reinforceBudget or 0) + waveValue
     
     reinforceWaveMaxCount = (reinforceWaveMaxCount or 0) + count
 end
@@ -221,5 +235,12 @@ end
 function gadget:Initialize()
     if autoReinforceBudget ~= 0 then
         SetupAutoReinforcementBudgets()
+    end
+end
+
+function gadget:GameStart()
+    if reinforceWaveMaxCount > 0 and reinforceBudget > 0 then
+        Spring.Echo("Wave count: ".. reinforceWaveMaxCount)
+        Spring.Echo("Wave count: ".. reinforceBudget)
     end
 end

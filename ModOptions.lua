@@ -1211,14 +1211,14 @@ TODO would be nice to a seperate section but I think it needs lobby changes.
     def    = false,
 	},
   {
-		key     = "reinforcement_drop_auto_wave_mult",
+		key     = "reinforcement_drop_auto_value_mult_percent",
 		name    = "Auto Wave value multiplier ",
-		desc    = "Multiplier on the automatic wave value.",
+		desc    = "Multiplier on the automatic wave value in percent.",
 		section = 'mapsettings',
     type   = 'number',
-    def=4,
+    def=100,
     min=0,
-    max=100,
+    max=10000,
     step=0.01,
   },
  

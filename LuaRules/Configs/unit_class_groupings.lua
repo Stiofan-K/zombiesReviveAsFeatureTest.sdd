@@ -72,7 +72,7 @@ for unitDefID = 1, #UnitDefs do
 	local cp = UnitDefs[unitDefID].customParams
 	if cp.unit_class_tags then
         local unitDefName = UnitDefs[unitDefID].name
-        local movementTag = movetypeDefID[unitDefID] or "static"
+        local movementTags = {movetypeDefID[unitDefID] or "static"}
         local sectionTags = nil
         local classTags = nil
         local unitClassTags = stringToTable(cp.unit_class_tags)
@@ -103,8 +103,22 @@ for unitDefID = 1, #UnitDefs do
         
         --TODO!! Categorise buildings by watedepth into building "movementTags"
         
-        taggedUnitDefIDs[unitDefID] = {sectionTags = sectionTags, classTags = classTags, movementTags = {movementTag}}
-        taggedUnitDefNames[unitDefName] = {sectionTags = sectionTags, classTags = classTags, movementTags = {movementTag}}
+        if movementTags[1] == "static" and (not ud.maxWaterDepth or ud.maxWaterDepth > 10) then
+            movementTags = {"amph","hover"}
+        end
+        if movementTags[1] == "static" and ud.minWaterDepth and ud.minWaterDepth > 0 then
+            movementTags = {"sea"}
+        end
+        if movementTags[1] == "static" then
+            movementTags = {"bot"}
+        end   
+        
+        if unitClassTags and unitClassTags.movementtags then
+            movementTags = unitClassTags.movementtags
+        end
+        
+        taggedUnitDefIDs[unitDefID] = {sectionTags = sectionTags, classTags = classTags, movementTags = movementTags}
+        taggedUnitDefNames[unitDefName] = {sectionTags = sectionTags, classTags = classTags, movementTags = movementTags}
     end
 end
 
